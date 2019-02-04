@@ -1,0 +1,58 @@
+name: Player Reviewer
+main: me.engineersbox.playerrev.Main
+version: 1.0
+author: EngineersBox
+description: Review Player Rank Applications
+commands:
+    pr:
+        description: Allows The Use Of The pr Command
+        usage: /pr
+        permission: bp.use
+    pr help:
+        description: Displays All Help Options For Player Reviewer
+        usage: /pr help
+        permission: pr.help
+    pr apply:
+        description: Allow Player To Apply For Rank Reviewal
+        usage: /pr apply
+        permission: pr.apply
+    pr validranks:
+        description: Displays All Valid Ranks
+        usage: /pr validranks
+        permission: pr.validranks
+    pr rate:
+        description: Allows Player To Rate Open Applications
+        usage: /pr rate <player> <atmosphere> <originality> <skill>
+        permission: pr.rate
+    pr viewratings:
+        description: Displays Recieved Ratings Of Open Application
+        usage: /pr viewratings <player>
+        permission: pr.viewratings
+permissions:
+    pr.*:
+        description: Gives Access To All Player Reviewer Commands
+        children:
+            pr.use: true
+            pr.help: true
+            pr.apply: true
+            pr.validranks: true
+            pr.rate: true
+            pr.viewratings: true
+    pr.use:
+        description: Allows The Use Of The pr Command
+        default: true
+    bp.help:
+        description: Displays All Help Options For Player Reviewer
+        default: true
+    pr.apply:
+        description: Allow Player To Apply For Rank Reviewal
+        default: true
+    pr.validranks:
+        description: Displays All Valid Ranks
+        default: true
+    pr.rate:
+        description: Allows Player To Rate Open Applications
+        default: op
+    pr.viewratings:
+        description: Displays Recieved Ratings Of Open Application
+        default: op
