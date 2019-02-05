@@ -3,6 +3,7 @@ package me.engineersbox.playerrev;
 import java.io.File;
 import java.io.IOException;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import me.engineersbox.playerrev.Main;
@@ -24,7 +25,7 @@ public class AbstractFile {
             }
         }
         AbstractFile.config = YamlConfiguration.loadConfiguration(file);
-        config.addDefault("new", "");
+        config.addDefault("version", Bukkit.getServer().getPluginManager().getPlugin("PlayerReviewer").getDescription().getVersion());
         config.options().copyDefaults(true);
     }
     
