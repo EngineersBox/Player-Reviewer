@@ -15,12 +15,19 @@ import org.bukkit.entity.Player;
 
 public class Commands implements CommandExecutor {
 	
+	String[] testEnum = {
+		
+		"default",
+		"builder",
+		"mod"
+	};
+	
 	public enum RankEnum {
-		DEFAULT,
-		BUILDER,
-		SQUIRE,
-		MOD("MODERATOR"),
-		ADMIN("ADMIN", "ADMINISTRATOR");
+		DEFAULT("DEFAULT"),
+		BUILDER("BUILDER"),
+		SQUIRE("SQUIRE"),
+		MOD("MOD", "MODERATOR"),
+		ADMIN("ADMIN", "ADMIN", "ADMINISTRATOR");
 		
 	    private String[] aliases;
 
@@ -66,11 +73,8 @@ public class Commands implements CommandExecutor {
 			} else {
 				throw new NumberFormatException();
 			}
-			
 		} else {
-			
 			throw new IllegalStateException();
-			
 		}
 		
 	}
@@ -83,14 +87,19 @@ public class Commands implements CommandExecutor {
 			
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
 					
-				if (args.length > 0) {
+				if (args.length == 0) {
+					
+					p.sendMessage("Tester");
+					
+				} else if (args.length > 0) {
 					
 					//pr apply <rank>
-					if ((args[0].equalsIgnoreCase("apply")) && (args.length == 1) && (p.hasPermission("pr.apply"))) {
+					if ((args[0].equalsIgnoreCase("apply")) && (args.length > 1) && (p.hasPermission("pr.apply"))) {
 						
-						if (RankEnum.isValid(args[1]) == true) {
+						if (RankEnum.isValid(args[1].toUpperCase()) == true) {
 							
 							InvConfig.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
+							p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 							
 						} else {
 							
@@ -98,14 +107,16 @@ public class Commands implements CommandExecutor {
 							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
 							
 						}
+						return true;
 						
 					} else if ((args[0].equalsIgnoreCase("validranks")) && (p.hasPermission("pr.validranks"))) {
 						
-						Main.InfoHeader(p);
+						Main.InfoHeader(p, "Player Reviewer Valid Ranks");
         		    	for (RankEnum re : RankEnum.values()) {
         		    		p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + re);
         		    	}
-        		    	Main.InfoHeader(p);
+        		    	Main.InfoHeader(p, "Player Reviewer Valid Ranks");
+        		    	return true;
         		    	
 					//pr rate <player> <atmosphere> <originality> <skill>
 					} else if ((args[0].equalsIgnoreCase("rate")) && (args.length > 1) && (p.hasPermission("pr.rate"))) {
@@ -127,9 +138,10 @@ public class Commands implements CommandExecutor {
 							Bukkit.getLogger().info(i.toString());
 							
 						}
+						return true;
 					
 					//pr viewratings <player>
-					} else if ((args[0].equalsIgnoreCase("viewratings")) && (args.length == 1) && (p.hasPermission("pr.viewratings"))) {
+					} else if ((args[0].equalsIgnoreCase("viewratings")) && (args.length > 1) && (p.hasPermission("pr.viewratings"))) {
 						
 						ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
 						//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
@@ -145,6 +157,7 @@ public class Commands implements CommandExecutor {
 						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(0) + Ratings.get(1).get(1) + Ratings.get(1).get(2));
 						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(3));
 						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+						return true;
 					
 					} else if ((args[0].equalsIgnoreCase("viewratings")) && (args[1].equalsIgnoreCase(p.getDisplayName()))) {
 						
@@ -162,6 +175,7 @@ public class Commands implements CommandExecutor {
 						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(0) + Ratings.get(1).get(1) + Ratings.get(1).get(2));
 						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(3));
 						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+						return true;
 						
 					//pr approval <name> <approve/deny>	
 					} else if ((args[0].equalsIgnoreCase("approval")) && (args.length > 1) && (p.hasPermission("pr.approval"))) {
@@ -169,7 +183,7 @@ public class Commands implements CommandExecutor {
 						if (args[2].equalsIgnoreCase("approve")) {
 							
 							//TODO: Remove application and approve rank (hook into rank plugin)
-							String rank = InvConfig.getAppRank(args[1]);
+							//String rank = InvConfig.getAppRank(args[1]);
 							
 						} else if (args[2].equalsIgnoreCase("deny")) {
 							
@@ -187,7 +201,19 @@ public class Commands implements CommandExecutor {
 					} else if ((args[0].equalsIgnoreCase("removeapplication")) && (p.hasPermission("pr.removeapplication"))) {
 						
 						InvConfig.removeApp(args[1]);
-						
+						p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
+					
+					} else if ((args[0].equalsIgnoreCase("version")) && (p.hasPermission("pr.version"))) {
+        				
+            			String version = Bukkit.getServer().getPluginManager().getPlugin("PlayerReviewer").getDescription().getVersion();
+            			
+            			Main.InfoHeader(p, "Player Reviewer Version Info");
+            			p.sendMessage("");
+        		    	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Version Number " + ChatColor.WHITE + ":: " + ChatColor.RED + version);
+        		    	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Author " + ChatColor.WHITE + ":: " + ChatColor.RED + "EngineersBox");
+        		    	p.sendMessage("");
+        		    	Main.InfoHeader(p, "Player Reviewer Version Info");
+					
 					} else {
 						
 						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command!");
@@ -197,7 +223,11 @@ public class Commands implements CommandExecutor {
 					
 				}
 				
-			} 
+				return true;
+				
+			}
+			
+			return false;
 			
 		}
 		
