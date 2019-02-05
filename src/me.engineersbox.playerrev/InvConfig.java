@@ -14,21 +14,31 @@ public class InvConfig extends AbstractFile{
     }
     //Criteria: atmosphere, originality, skill
     public static void newApp(String pname, String rank) {
+    	if (!config.contains(pname)) {
+	    	List<String> criteria = new ArrayList<String>();
+	    	List<String> raters = new ArrayList<String>();
+	    	
+	    	criteria.add("Rank-" + rank);
+	    	criteria.add("Atmosphere-0-0");
+	    	criteria.add("Originality-0-0");
+	    	criteria.add("Skill-0-0");
+	    	criteria.add("TotalRatings-0");
+	    	
+	    	raters.add("Name-0-0-0");
+	    	
+	    	config.set(pname, criteria);
+	    	config.set(pname + "raters", raters);
+	        saveConfig();
+    	}
+	        
+    }
+    
+    public static void removeApp(String pname) {
     	
-    	List<String> criteria = config.getStringList(pname);
-    	List<String> raters = config.getStringList(pname + "raters");
+    	config.set(pname, null);
+    	config.set(pname + "raters", null);
+    	saveConfig();
     	
-    	criteria.add("Rank-" + rank);
-    	criteria.add("Atmosphere-0-0");
-    	criteria.add("Originality-0-0");
-    	criteria.add("Skill-0-0");
-    	criteria.add("TotalRatings-0");
-    	
-    	raters.add("Name-0-0-0");
-    	
-    	config.set(pname, criteria);
-    	config.set(pname + "raters", raters);
-        saveConfig();
     }
     
     public static void ratePlayer(String prater, String pname, Integer atmosphere, Integer originality, Integer skill) {
@@ -36,13 +46,13 @@ public class InvConfig extends AbstractFile{
     	List<String> criteria = config.getStringList(pname);
     	List<String> raters = config.getStringList(pname + "raters");
     	
-    	int cAtmosphere = Integer.parseInt(criteria.get(1).substring(criteria.indexOf("-"), criteria.lastIndexOf("-")));
-    	int AtCount = Integer.parseInt(criteria.get(1).substring(criteria.lastIndexOf("-"), + 1));
-    	int cOriginality = Integer.parseInt(criteria.get(2).substring(criteria.indexOf("-"), criteria.lastIndexOf("-")));
-    	int OrCount = Integer.parseInt(criteria.get(2).substring(criteria.lastIndexOf("-"), + 1));
-    	int cSkill = Integer.parseInt(criteria.get(3).substring(criteria.indexOf("-"), criteria.lastIndexOf("-")));
-    	int SkCount = Integer.parseInt(criteria.get(3).substring(criteria.lastIndexOf("-"), + 1));
-    	int cTotalRatings = Integer.parseInt(criteria.get(4).substring(criteria.lastIndexOf("-"), +1));
+    	int cAtmosphere = Integer.parseInt(criteria.get(1).substring(criteria.get(1).indexOf("-") + 1, criteria.get(1).lastIndexOf("-")));
+    	int AtCount = Integer.parseInt(criteria.get(1).substring(criteria.get(1).lastIndexOf("-") + 1));
+    	int cOriginality = Integer.parseInt(criteria.get(2).substring(criteria.get(2).indexOf("-") + 1, criteria.get(2).lastIndexOf("-")));
+    	int OrCount = Integer.parseInt(criteria.get(2).substring(criteria.get(2).lastIndexOf("-") + 1));
+    	int cSkill = Integer.parseInt(criteria.get(3).substring(criteria.get(3).indexOf("-") + 1, criteria.get(3).lastIndexOf("-")));
+    	int SkCount = Integer.parseInt(criteria.get(3).substring(criteria.get(3).lastIndexOf("-") + 1));
+    	int cTotalRatings = Integer.parseInt(criteria.get(4).substring(criteria.get(4).indexOf("-"), +1));
     	
     	int newAt;
     	int newOr;
@@ -88,16 +98,16 @@ public class InvConfig extends AbstractFile{
     	List<String> criteria = config.getStringList(pname);
     	List<String> raters = config.getStringList(pname + "raters");
     	
-    	String cAtmosphere = criteria.get(1).substring(criteria.indexOf("-"), criteria.lastIndexOf("-"));
-    	String cOriginality = criteria.get(2).substring(criteria.indexOf("-"), criteria.lastIndexOf("-"));
-    	String cSkill = criteria.get(3).substring(criteria.indexOf("-"), criteria.lastIndexOf("-"));
-    	String cTotalRatings = criteria.get(4).substring(criteria.lastIndexOf("-"), +1);
+    	String cAtmosphere = criteria.get(1).substring(criteria.get(1).indexOf("-") + 1, criteria.get(1).lastIndexOf("-"));
+    	String cOriginality = criteria.get(2).substring(criteria.get(2).indexOf("-") + 1, criteria.get(2).lastIndexOf("-"));
+    	String cSkill = criteria.get(3).substring(criteria.get(3).indexOf("-") + 1, criteria.get(3).lastIndexOf("-"));
+    	String cTotalRatings = criteria.get(4).substring(criteria.get(4).indexOf("-") + 1);
     	
     	//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
     	List<String> averages = new ArrayList<String>();
-    	averages.add(cAtmosphere);
-    	averages.add(cOriginality);
-    	averages.add(cSkill);
+    	averages.add(cAtmosphere + " ");
+    	averages.add(cOriginality + " ");
+    	averages.add(cSkill + " ");
     	averages.add(cTotalRatings);
     	
     	ArrayList<List<String>> retval = new ArrayList<List<String>>();
@@ -105,6 +115,13 @@ public class InvConfig extends AbstractFile{
     	retval.add(averages);
     	
     	return retval;
+    	
+    }
+    
+    public static String getAppRank(String pname) {
+    	
+    	List<String> criteria = config.getStringList(pname);
+    	return criteria.get(0).substring(criteria.get(0).lastIndexOf("-") + 1);
     	
     }
    
