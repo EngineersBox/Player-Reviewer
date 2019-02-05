@@ -55,6 +55,26 @@ public class Commands implements CommandExecutor {
 	    }
 	}
 	
+	public static int returnInRange(Object value) {
+		
+		Range<Integer> RateRange = Range.between(0, 100);
+		
+		if (value.getClass().equals(int.class)) {
+			
+			if (RateRange.contains((Integer) value)) {
+				return (Integer) value;
+			} else {
+				throw new NumberFormatException();
+			}
+			
+		} else {
+			
+			throw new IllegalStateException();
+			
+		}
+		
+	}
+	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		
 		if (sender instanceof Player) {
@@ -90,26 +110,22 @@ public class Commands implements CommandExecutor {
 					//pr rate <player> <atmosphere> <originality> <skill>
 					} else if ((args[0].equalsIgnoreCase("rate")) && (args.length > 1) && (p.hasPermission("pr.rate"))) {
 						
-						Range<Integer> RateRange = Range.between(0, 100);
-						
 						try {
 							
-							if (RateRange.contains(Integer.parseInt(args[2])) && RateRange.contains(Integer.parseInt(args[3])) && RateRange.contains(Integer.parseInt(args[4]))) {
-								
-								InvConfig.ratePlayer(p.getDisplayName(), args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
-								
-							} else {
-								
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Valid Values Are 0 - 100 Inclusive");
-								
-							}
+							InvConfig.ratePlayer(p.getDisplayName(), args[1], returnInRange(args[2]), returnInRange(args[3]), returnInRange(args[4]));
 							
 						} catch (NumberFormatException e) {
 							
 							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Valid Values Are 0 - 100 Inclusive");
 							Bukkit.getLogger().info(e.toString());
+							
+						} catch (IllegalStateException i) {
+							
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers");
+							Bukkit.getLogger().info(i.toString());
+							
 						}
 					
 					//pr viewratings <player>
