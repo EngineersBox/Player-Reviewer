@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.Range;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -62,6 +64,7 @@ public class Commands implements CommandExecutor {
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
 					
 				if (args.length > 0) {
+					
 					//pr apply <rank>
 					if ((args[0].equalsIgnoreCase("apply")) && (args.length == 1) && (p.hasPermission("pr.apply"))) {
 						
@@ -83,10 +86,31 @@ public class Commands implements CommandExecutor {
         		    		p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + re);
         		    	}
         		    	Main.InfoHeader(p);
+        		    	
 					//pr rate <player> <atmosphere> <originality> <skill>
 					} else if ((args[0].equalsIgnoreCase("rate")) && (args.length > 1) && (p.hasPermission("pr.rate"))) {
 						
-						InvConfig.ratePlayer(p.getDisplayName(), args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
+						Range<Integer> RateRange = Range.between(0, 100);
+						
+						try {
+							
+							if (RateRange.contains(Integer.parseInt(args[2])) && RateRange.contains(Integer.parseInt(args[3])) && RateRange.contains(Integer.parseInt(args[4]))) {
+								
+								InvConfig.ratePlayer(p.getDisplayName(), args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
+								
+							} else {
+								
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Valid Values Are 0 - 100 Inclusive");
+								
+							}
+							
+						} catch (NumberFormatException e) {
+							
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers");
+							Bukkit.getLogger().info(e.toString());
+						}
 					
 					//pr viewratings <player>
 					} else if ((args[0].equalsIgnoreCase("viewratings")) && (args.length == 1) && (p.hasPermission("pr.viewratings"))) {
@@ -122,6 +146,31 @@ public class Commands implements CommandExecutor {
 						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(0) + Ratings.get(1).get(1) + Ratings.get(1).get(2));
 						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(3));
 						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+						
+					//pr approval <name> <approve/deny>	
+					} else if ((args[0].equalsIgnoreCase("approval")) && (args.length > 1) && (p.hasPermission("pr.approval"))) {
+						
+						if (args[2].equalsIgnoreCase("approve")) {
+							
+							//TODO: Remove application and approve rank (hook into rank plugin)
+							String rank = InvConfig.getAppRank(args[1]);
+							
+						} else if (args[2].equalsIgnoreCase("deny")) {
+							
+							InvConfig.removeApp(args[1]);
+							//TODO: Send message of application denial to player
+							
+						} else {
+							
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>");
+							
+						}
+						
+					//pr removeapplication <name>
+					} else if ((args[0].equalsIgnoreCase("removeapplication")) && (p.hasPermission("pr.removeapplication"))) {
+						
+						InvConfig.removeApp(args[1]);
 						
 					} else {
 						
