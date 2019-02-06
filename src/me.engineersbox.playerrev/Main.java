@@ -15,8 +15,6 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public static FileConfiguration config;
 	public static File cfile;
-	public static FileConfiguration sqconfig;
-	public static File sqfile;
 	
 	//Globals
 	public static String prefix = ChatColor.RED + "[" + ChatColor.DARK_AQUA + "Player Reviewer" + ChatColor.RED + "] ";
@@ -50,7 +48,6 @@ public class Main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
     	AbstractFile.saveConfig();
-    	SQLAbstractFile.saveConfig();
     }
     
 }
