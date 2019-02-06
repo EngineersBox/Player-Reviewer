@@ -24,11 +24,12 @@ public class SQLLink {
 	 */
 	
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = SQLConfig.getDBURL();
+	static final String DB_URL = "jdbc:mysql://stormboomer/dr_mcserver";
 	
-	static final String USER = SQLConfig.getUSER();
-	static final String PASS = SQLConfig.getPASS();
+	static final String USER = "dr_mcserver";
+	protected static final String PASS = "HIDDEN";
 	
+	//returns rank, atmosphere average, originality average, skill average, totalratings and ratinglist
 	public static ArrayList<List<String>> getRatingValues(String name) {
 		
 		Connection conn = null;
