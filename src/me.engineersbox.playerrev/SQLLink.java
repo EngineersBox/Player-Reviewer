@@ -29,7 +29,7 @@ public class SQLLink {
 	static final String USER = SQLConfig.getUSER();
 	static final String PASS = SQLConfig.getPASS();
 	
-	public static void selectFromWhere(String[] queryvalues, String dbtitle, String name) {
+	public static ArrayList<List<String>> getRatingValues(String name) {
 		
 		Connection conn = null;
 		Statement stmt = null;
@@ -41,6 +41,9 @@ public class SQLLink {
 		int totalratings = 0;
 		String ratingstring = "";
 		List<String> ratinglist = new ArrayList<String>();
+		List<String> averages = new ArrayList<String>();
+		
+		ArrayList<List<String>> retval = new ArrayList<List<String>>();
 		
 		try {
 			
@@ -49,11 +52,7 @@ public class SQLLink {
 			stmt = conn.createStatement();
 			
 			String sql;
-			sql = "SELECT ";
-			for (String cval : queryvalues) {
-				sql += cval + " ";
-			}
-			sql += "FROM " + dbtitle + " WHERE Name = " + name; //<-FIX THIS TO GET BASED ON NAME ARG
+			sql = "SELECT rank, atmosphere, originality, skill, totalratings, ratinglist FROM playerapplications WHERE Name = " + name;
 			
 			ResultSet rs = stmt.executeQuery(sql);
 			rank = rs.getString("rank");
@@ -77,6 +76,15 @@ public class SQLLink {
 				}
 				
 			}
+			
+			averages.add(rank);
+			averages.add(Integer.toString(atmosphere));
+			averages.add(Integer.toString(originality));
+			averages.add(Integer.toString(skill));
+			averages.add(Integer.toString(totalratings));
+			
+			retval.add(averages);
+			retval.add(ratinglist);
 			
 			rs.close();
 			stmt.close();
@@ -102,6 +110,8 @@ public class SQLLink {
 				Bukkit.getLogger().warning(se.getStackTrace().toString());
 			}
 		}
+		
+		return retval;
 		
 	}
 	
