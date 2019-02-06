@@ -15,13 +15,6 @@ import org.bukkit.entity.Player;
 
 public class Commands implements CommandExecutor {
 	
-	String[] testEnum = {
-		
-		"default",
-		"builder",
-		"mod"
-	};
-	
 	public enum RankEnum {
 		DEFAULT("DEFAULT"),
 		BUILDER("BUILDER"),
@@ -62,19 +55,16 @@ public class Commands implements CommandExecutor {
 	    }
 	}
 	
-	public static int returnInRange(Object value) {
-		
-		Range<Integer> RateRange = Range.between(0, 100);
-		
-		if (value.getClass().equals(int.class)) {
-			
-			if (RateRange.contains((Integer) value)) {
-				return (Integer) value;
+	public static int returnInRange(String value) throws NumberFormatException {
+		Range<Integer> rangeInt = Range.between(0, 100);
+		try {
+			if (rangeInt.contains(Integer.parseInt(value))) {
+				return Integer.parseInt(value);
 			} else {
-				throw new NumberFormatException();
+				return 0;
 			}
-		} else {
-			throw new IllegalStateException();
+		} catch (NumberFormatException e) {
+			throw new NumberFormatException(value);
 		}
 		
 	}
@@ -94,20 +84,29 @@ public class Commands implements CommandExecutor {
 				} else if (args.length > 0) {
 					
 					//pr apply <rank>
-					if ((args[0].equalsIgnoreCase("apply")) && (args.length > 1) && (p.hasPermission("pr.apply"))) {
+					if ((args[0].equalsIgnoreCase("apply")) && (p.hasPermission("pr.apply"))) {
 						
-						if (RankEnum.isValid(args[1].toUpperCase()) == true) {
+						if (args.length == 2) {
 							
-							InvConfig.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
-							p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+							if (RankEnum.isValid(args[1].toUpperCase()) == true) {
+								
+								InvConfig.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
+								p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+								
+							} else {
+								
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank!");
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
+								
+							}
+							return true;
 							
 						} else {
 							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr apply <rank>");
 							
 						}
-						return true;
 						
 					} else if ((args[0].equalsIgnoreCase("validranks")) && (p.hasPermission("pr.validranks"))) {
 						
@@ -121,88 +120,138 @@ public class Commands implements CommandExecutor {
 					//pr rate <player> <atmosphere> <originality> <skill>
 					} else if ((args[0].equalsIgnoreCase("rate")) && (args.length > 1) && (p.hasPermission("pr.rate"))) {
 						
-						try {
+						if (args.length == 5) {
 							
-							InvConfig.ratePlayer(p.getDisplayName(), args[1], returnInRange(args[2]), returnInRange(args[3]), returnInRange(args[4]));
+							boolean successFlag = true;
 							
-						} catch (NumberFormatException e) {
+							try {
+								
+									InvConfig.ratePlayer(p.getDisplayName(), args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
+									p.sendMessage(Main.prefix + ChatColor.AQUA + args[1] + "'s Application For " + InvConfig.getAppRank(args[1]) + " Submitted!");
+									successFlag = false;
+								
+							} catch (NumberFormatException e) {
+								
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
+								successFlag = false;
 							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Valid Values Are 0 - 100 Inclusive");
-							Bukkit.getLogger().info(e.toString());
+							} catch (ArrayStoreException e) {
+								
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+								successFlag = false;
+								
+							}
 							
-						} catch (IllegalStateException i) {
+							if (successFlag) {
+								
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Valid Values Are 0 - 100 Inclusive");
+								
+							}
+							return true;
 							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers");
-							Bukkit.getLogger().info(i.toString());
+						} else {
+							
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr rate <player> <atmosphere> <originality> <skill>");
 							
 						}
-						return true;
+						
 					
 					//pr viewratings <player>
-					} else if ((args[0].equalsIgnoreCase("viewratings")) && (args.length > 1) && (p.hasPermission("pr.viewratings"))) {
+					} else if (args[0].equalsIgnoreCase("viewratings")) {
 						
-						ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
-						//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
-						
-						p.sendMessage("");
-						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-						p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Skill>");
-						for (String ra : Ratings.get(0)) {
-							String[] ratingValues = ra.split("-");
-							p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.DARK_RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3]);
+						if ((args.length == 2) && ((args[1].equalsIgnoreCase(p.getDisplayName())) | (p.hasPermission("pr.viewratings")))) {
+							
+							try {
+
+								ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
+								String appRank = InvConfig.getAppRank(args[1]);
+								//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
+								
+								p.sendMessage("");
+								p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+								p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Skill>");
+								p.sendMessage("");
+								for (String ra : Ratings.get(0)) {
+									String[] ratingValues = ra.split("-");
+									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + "");
+								}
+								p.sendMessage("");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + "" + Ratings.get(1).get(1) + "" + Ratings.get(1).get(2) + "");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(3));
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank.substring(0, 1).toUpperCase() + appRank.substring(1));
+								p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+								return true;
+								
+							} catch (ArrayStoreException e) {
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							}
+							
+						} else {
+							
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr viewratings <name>");
+							
 						}
-						p.sendMessage("");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(0) + Ratings.get(1).get(1) + Ratings.get(1).get(2));
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(3));
-						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-						return true;
-					
-					} else if ((args[0].equalsIgnoreCase("viewratings")) && (args[1].equalsIgnoreCase(p.getDisplayName()))) {
-						
-						ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
-						//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
-						
-						p.sendMessage("");
-						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-						p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Skill>");
-						for (String ra : Ratings.get(0)) {
-							String[] ratingValues = ra.split("-");
-							p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.DARK_RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3]);
-						}
-						p.sendMessage("");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(0) + Ratings.get(1).get(1) + Ratings.get(1).get(2));
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.DARK_RED + Ratings.get(1).get(3));
-						p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-						return true;
 						
 					//pr approval <name> <approve/deny>	
 					} else if ((args[0].equalsIgnoreCase("approval")) && (args.length > 1) && (p.hasPermission("pr.approval"))) {
 						
-						if (args[2].equalsIgnoreCase("approve")) {
+						if (args.length == 3) {
 							
-							//TODO: Remove application and approve rank (hook into rank plugin)
-							//String rank = InvConfig.getAppRank(args[1]);
-							
-						} else if (args[2].equalsIgnoreCase("deny")) {
-							
-							InvConfig.removeApp(args[1]);
-							//TODO: Send message of application denial to player
+							try {
+
+								if (args[2].equalsIgnoreCase("approve")) {
+									
+									//TODO: Remove application and approve rank (hook into rank plugin)
+									//String rank = InvConfig.getAppRank(args[1]);
+									
+								} else if (args[2].equalsIgnoreCase("deny")) {
+									
+									InvConfig.removeApp(args[1]);
+									//TODO: Send message of application denial to player
+									
+								} else {
+									
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command Syntax!");
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>");
+									
+								}
+								
+							} catch (ArrayStoreException e) {
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							}
 							
 						} else {
 							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>	");
 							
 						}
 						
 					//pr removeapplication <name>
 					} else if ((args[0].equalsIgnoreCase("removeapplication")) && (p.hasPermission("pr.removeapplication"))) {
 						
-						InvConfig.removeApp(args[1]);
-						p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
-					
+						if (args.length == 2) {
+							
+							try {
+								
+								InvConfig.removeApp(args[1]);
+								p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
+								
+							} catch (ArrayStoreException e) {
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							}
+							
+						} else {
+							
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr removeapplication <name>");
+							
+						}
+						
 					} else if ((args[0].equalsIgnoreCase("version")) && (p.hasPermission("pr.version"))) {
         				
             			String version = Bukkit.getServer().getPluginManager().getPlugin("PlayerReviewer").getDescription().getVersion();
