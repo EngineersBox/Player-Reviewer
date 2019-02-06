@@ -100,7 +100,7 @@ public class SQLLink {
 					stmt.close();
 				}
 			} catch (SQLException se2) {
-				
+				Bukkit.getLogger().warning(se2.getStackTrace().toString());
 			}
 			try {
 				if (conn != null) {
