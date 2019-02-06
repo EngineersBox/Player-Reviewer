@@ -11,7 +11,7 @@ public class SQLConfig extends SQLAbstractFile {
     }
     
     private static List<String> getDetails() {
-    	return sqconfig.getStringList("User-Details");
+    	return config.getStringList("User-Details");
     }
     
     public static String getDBURL() {
