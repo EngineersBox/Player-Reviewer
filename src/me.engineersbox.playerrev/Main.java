@@ -15,12 +15,14 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public static FileConfiguration config;
 	public static File cfile;
+	public static FileConfiguration sqconfig;
+	public static File sqfile;
 	
 	//Globals
 	public static String prefix = ChatColor.RED + "[" + ChatColor.DARK_AQUA + "Player Reviewer" + ChatColor.RED + "] ";
-	public static void InfoHeader(Player p) {
+	public static void InfoHeader(Player p, String info) {
 		p.sendMessage("");
-    	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + "BlockPalette Biome List" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+    	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
     	p.sendMessage("");
 	}
 	
@@ -40,11 +42,15 @@ public class Main extends JavaPlugin implements Listener {
         getCommand("pr validranks").setExecutor(new Commands());
         getCommand("pr rate").setExecutor(new Commands());
         getCommand("pr viewratings").setExecutor(new Commands());
+        getCommand("pr approval").setExecutor(new Commands());
+        getCommand("pr removeapplication").setExecutor(new Commands());
+        getCommand("pr version").setExecutor(new Commands());
     }
     
     @Override
     public void onDisable() {
     	AbstractFile.saveConfig();
+    	SQLAbstractFile.saveConfig();
     }
     
 }
