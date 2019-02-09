@@ -2,10 +2,7 @@ package me.engineersbox.playerrev;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import me.engineersbox.playerrev.Main;
@@ -27,14 +24,14 @@ public class AbstractFile {
             }
         }
         AbstractFile.config = YamlConfiguration.loadConfiguration(file);
-        config.addDefault("version", Bukkit.getServer().getPluginManager().getPlugin("PlayerReviewer").getDescription().getVersion());
-        List<String> defaultDetails = new ArrayList<String>();
-        defaultDetails.add("DB_URL:jdbc:mysql://localhost/db");
-        defaultDetails.add("USER:username");
-        defaultDetails.add("PASS:password");
-        config.addDefault("User-Details", defaultDetails);
+        config.addDefault("User-Details.HOSTNAME", "localhost");
+        config.addDefault("User-Details.DATABASE", "db");
+        config.addDefault("User-Details.PORT", "3306");
+        config.addDefault("User-Details.USER", "username");
+        config.addDefault("User-Details.PASS", "password");
         config.options().copyDefaults(true);
         config.options().copyDefaults(true);
+        saveConfig();
     }
     
     public static void saveConfig() {
