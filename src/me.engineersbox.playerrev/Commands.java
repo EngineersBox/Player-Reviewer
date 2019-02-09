@@ -1,5 +1,6 @@
 package me.engineersbox.playerrev;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -166,27 +167,31 @@ public class Commands implements CommandExecutor {
 							
 							try {
 
-								ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
-								String appRank = InvConfig.getAppRank(args[1]);
+								ArrayList<List<String>> Ratings = SQLLink.getRatingValues(args[1]);
+								String appRank = Ratings.get(0).get(0);
 								//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
 								
 								p.sendMessage("");
 								p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
 								p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Skill>");
 								p.sendMessage("");
-								for (String ra : Ratings.get(0)) {
+								for (String ra : Ratings.get(1)) {
 									String[] ratingValues = ra.split("-");
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + "");
 								}
 								p.sendMessage("");
-								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + "" + Ratings.get(1).get(1) + "" + Ratings.get(1).get(2) + "");
-								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(3));
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(1) + " " + Ratings.get(0).get(2) + " " + Ratings.get(0).get(3));
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(4));
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank.substring(0, 1).toUpperCase() + appRank.substring(1));
 								p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
 								return true;
 								
 							} catch (ArrayStoreException e) {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							} catch (SQLException e) {
+								Bukkit.getLogger().warning(e.getMessage());
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Query");
+								e.printStackTrace();
 							}
 							
 						} else {
