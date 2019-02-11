@@ -27,7 +27,7 @@ public class Main extends JavaPlugin implements Listener {
     	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
     	p.sendMessage("");
 	}
-	MySQL MySQL;
+	static MySQL MySQL;
 	static Connection c = null;
 	
     public void onEnable() {
