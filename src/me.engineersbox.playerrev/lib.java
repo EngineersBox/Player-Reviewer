@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Range;
 
 public class lib {
 	
@@ -62,6 +63,20 @@ public class lib {
 	    	retval.add(TotalOr);
 	    	retval.add(TotalSk);
 	    	return retval;
+		}
+		
+	}
+	
+	public static int returnInRange(String value) throws NumberFormatException {
+		Range<Integer> rangeInt = Range.between(0, 100);
+		try {
+			if (rangeInt.contains(Integer.parseInt(value))) {
+				return Integer.parseInt(value);
+			} else {
+				return 0;
+			}
+		} catch (NumberFormatException e) {
+			throw new NumberFormatException(value);
 		}
 		
 	}
