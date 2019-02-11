@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class SQLLink {
 	
 	/* Table Setup
@@ -24,22 +25,20 @@ public class SQLLink {
 		
 		try {
 			
-			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT Name FROM playerapplications WHERE Name = '" + name + "';";
-			ResultSet rs = statement.executeQuery(sql);
+			ResultSet rs = Main.MySQL.querySQL(sql);
 			
 			if (rs.next()) {
 				throw new SQLException();
 			} else {
 				
-				String sql1;
-				sql1 = "INSERT INTO playerapplications (Name, rank, atmosphere, originality, skill, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', '0', '0', '0', '0', '');";
-				statement.executeUpdate(sql1);
+				sql = "INSERT INTO playerapplications (Name, rank, atmosphere, originality, skill, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', '0', '0', '0', '0', '');";
+				Main.MySQL.noRetUpdate(sql);
 				
 			}
 			
-		} catch (SQLException se) {
+		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
 		
@@ -54,17 +53,15 @@ public class SQLLink {
 		float skill = 0;
 		int totalratings = 0;
 		String ratingstring = "";
-		
 		List<String> ratinglist = new ArrayList<String>();
 		List<String> averages = new ArrayList<String>();
 		ArrayList<List<String>> retval = new ArrayList<List<String>>();
 
 		try {
 			
-			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
-			ResultSet rs = statement.executeQuery(sql);
+			ResultSet rs = Main.MySQL.querySQL(sql);
 			rs.next();
 			
 			rank = rs.getString("rank");
@@ -85,7 +82,7 @@ public class SQLLink {
 			retval.add(averages);
 			retval.add(ratinglist);
 			
-		} catch (SQLException se) {
+		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
 		
@@ -97,12 +94,11 @@ public class SQLLink {
 		
 		try {
 			
-			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "DELETE FROM playerapplications WHERE Name = '" + name + "';";
-			statement.executeUpdate(sql);
+			Main.MySQL.noRetUpdate(sql);
 			
-		} catch (SQLException se) {
+		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
 		
@@ -116,15 +112,13 @@ public class SQLLink {
 		int totalratings = 0;
 		String ratingliststring = "";
 		String ratingstring = "";
-		
 		List<String> ratinglist = new ArrayList<String>();
 		
 		try {
 			
-			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
-			ResultSet rs = statement.executeQuery(sql);
+			ResultSet rs = Main.MySQL.querySQL(sql);
 			rs.next();
 			
 			totalratings = rs.getInt("totalratings") + 1;
@@ -151,9 +145,10 @@ public class SQLLink {
         	float upAt = (TotalAt + atmosphere) / totalratings;
         	float upOr = (TotalOr + originality) / totalratings;
         	float upSk = (TotalSk + skill) / totalratings;
-        	statement.executeUpdate("UPDATE playerapplications SET atmosphere='" + upAt + "',originality='" + upOr +"',skill='" + upSk + "',totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';");
+        	sql = "UPDATE playerapplications SET atmosphere='" + upAt + "',originality='" + upOr +"',skill='" + upSk + "',totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';";
+        	Main.MySQL.noRetUpdate(sql);
 
-		} catch (SQLException se) {
+		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
 		
@@ -165,16 +160,15 @@ public class SQLLink {
 		
 		try {
 			
-			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT rank FROM playerapplications WHERE Name = '" + name + "';";
-			ResultSet rs = statement.executeQuery(sql);
+			ResultSet rs = Main.MySQL.querySQL(sql);
 			rs.next();
 			
 			rank = rs.getString("rank");
 			return rank;
 			
-		} catch (SQLException se) {
+		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
 		
