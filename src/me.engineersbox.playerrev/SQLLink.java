@@ -4,8 +4,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-
 public class SQLLink {
 	
 	/* Table Setup
@@ -66,7 +64,6 @@ public class SQLLink {
 			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
-			
 			ResultSet rs = statement.executeQuery(sql);
 			rs.next();
 			
@@ -77,20 +74,7 @@ public class SQLLink {
 			totalratings = rs.getInt("totalratings");
 			ratingstring = rs.getString("ratinglist");
 			
-			boolean eos = false;
-			int count = 0;
-			while (eos == false) {
-				
-				if ((ratingstring.contains(":" + count + ":")) && (ratingstring.contains(":" + (count + 1) + ":"))) {
-					ratinglist.add(StringUtils.substringBetween(ratingstring, ":" + count + ":", ":" + (count + 1) + ":"));
-					count += 1;
-				} else if ((ratingstring.contains(":" + count + ":")) && (!ratingstring.contains(":" + (count + 1) + ":"))) {
-					ratinglist.add(StringUtils.substringAfter(ratingstring, ":" + count + ":"));
-					count += 1;
-					eos = true;
-				}
-				
-			}
+			ratinglist = lib.ratingListCreator(ratingstring);
 			
 			averages.add(rank);
 			averages.add(Float.toString(atmosphere));
@@ -126,7 +110,11 @@ public class SQLLink {
 	
 	public static void ratePlayer(String rater, String name, Integer atmosphere, Integer originality, Integer skill) throws SQLException {
 		
+		int TotalAt = 0;
+		int TotalOr = 0;
+		int TotalSk = 0;
 		int totalratings = 0;
+		String ratingliststring = "";
 		String ratingstring = "";
 		
 		List<String> ratinglist = new ArrayList<String>();
@@ -136,53 +124,30 @@ public class SQLLink {
 			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
-			
 			ResultSet rs = statement.executeQuery(sql);
 			rs.next();
 			
 			totalratings = rs.getInt("totalratings") + 1;
 			ratingstring = rs.getString("ratinglist");
+			ratinglist = lib.ratingListCreator(ratingstring);
 			
-			boolean eos = false;
-			int count = 0;
-			while (eos == false) {
+			if (ratinglist.size() == 0) {
+				ratingliststring += ":0:" + name + "-" + atmosphere + "-" + originality + "-" + skill;
+			} else {
 				
-				if ((ratingstring.contains(":" + count + ":")) && (ratingstring.contains(":" + (count + 1) + ":"))) {
-					ratinglist.add(StringUtils.substringBetween(ratingstring, ":" + count + ":", ":" + (count + 1) + ":"));
-					count += 1;
-				} else if ((ratingstring.contains(":" + count + ":")) && (!ratingstring.contains(":" + (count + 1) + ":"))) {
-					ratinglist.add(StringUtils.substringAfter(ratingstring, ":" + count + ":"));
-					count += 1;
-					eos = true;
-				}
-				
+				List<Integer> valueList = lib.valueListCreator(ratinglist);
+				TotalAt = valueList.get(0);
+				TotalOr = valueList.get(1);
+				TotalSk = valueList.get(2);
+	        	
+	        	int count2 = 0;
+	        	for (String cRater : ratinglist) {
+	        		ratingliststring += ":" + count2 + ":" + cRater;
+	        		count2 += 1;
+	        	}
+	        	ratingliststring += ":" + count2 + ":" + name + "-" + atmosphere + "-" + originality + "-" + skill;
 			}
 			
-			int TotalAt = 0;
-        	int TotalOr = 0;
-        	int TotalSk = 0;
-        	
-        	for (String cRater : ratinglist) {
-        		String[] cSplit = cRater.split("-");
-        		for (int i = 1; i < cSplit.length; i++) {
-            		if (i == 1) {
-            			TotalAt += Integer.parseInt(cSplit[i]);
-            		} else if (i == 2) {
-            			TotalOr += Integer.parseInt(cSplit[i]);
-            		} else if (i == 3) {
-            			TotalSk += Integer.parseInt(cSplit[i]);
-            		}
-            	}
-        	}
-        	
-        	String ratingliststring = "";
-        	int count2 = 0;
-        	for (String cRater : ratinglist) {
-        		ratingliststring += ":" + count2 + ":" + cRater;
-        		count2 += 1;
-        	}
-        	ratingliststring += ":" + count2 + ":" + name + "-" + atmosphere + "-" + originality + "-" + skill;
-        	
         	float upAt = (TotalAt + atmosphere) / totalratings;
         	float upOr = (TotalOr + originality) / totalratings;
         	float upSk = (TotalSk + skill) / totalratings;
@@ -203,7 +168,6 @@ public class SQLLink {
 			Statement statement = Main.c.createStatement();
 			String sql;
 			sql = "SELECT rank FROM playerapplications WHERE Name = '" + name + "';";
-			
 			ResultSet rs = statement.executeQuery(sql);
 			rs.next();
 			
