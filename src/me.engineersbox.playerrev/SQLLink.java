@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
 
 public class SQLLink {
 	
@@ -23,43 +22,58 @@ public class SQLLink {
 	 * RATINGLIST = list of previous ratings in format: [:0:Name-0-0-0:1:Name-0-0-0:2:Name-0-0-0]
 	 */
 	
-	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://stormboomer/dr_mcserver";
-	
-	static final String USER = "dr_mcserver";
-	protected static final String PASS = "HIDDEN";
-	
-	//returns rank, atmosphere average, originality average, skill average, totalratings and ratinglist
-	public static ArrayList<List<String>> getRatingValues(String name) {
-		
-		Connection conn = null;
-		Statement stmt = null;
-		
-		String rank = "";
-		int atmosphere = 0;
-		int originality = 0;
-		int skill = 0;
-		int totalratings = 0;
-		String ratingstring = "";
-		List<String> ratinglist = new ArrayList<String>();
-		List<String> averages = new ArrayList<String>();
-		
-		ArrayList<List<String>> retval = new ArrayList<List<String>>();
+	public static void newApp(String name, String rank) throws SQLException {
 		
 		try {
 			
-			Class.forName(JDBC_DRIVER);
-			conn = DriverManager.getConnection(DB_URL, USER, PASS);
-			stmt = conn.createStatement();
-			
+			Statement statement = Main.c.createStatement();
 			String sql;
-			sql = "SELECT rank, atmosphere, originality, skill, totalratings, ratinglist FROM playerapplications WHERE Name = " + name;
+			sql = "SELECT Name FROM playerapplications WHERE Name = '" + name + "';";
+			ResultSet rs = statement.executeQuery(sql);
 			
-			ResultSet rs = stmt.executeQuery(sql);
+			if (rs.next()) {
+				throw new SQLException();
+			} else {
+				
+				String sql1;
+				sql1 = "INSERT INTO playerapplications (Name, rank, atmosphere, originality, skill, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', '0', '0', '0', '0', '');";
+				statement.executeUpdate(sql1);
+				
+			}
+			
+		} catch (SQLException se) {
+			throw new SQLException(se);
+		}
+		
+	}
+	
+	//returns rank, atmosphere average, originality average, skill average, totalratings and ratinglist
+	public static ArrayList<List<String>> getRatingValues(String name) throws SQLException {
+	
+		String rank = "";
+		float atmosphere = 0;
+		float originality = 0;
+		float skill = 0;
+		int totalratings = 0;
+		String ratingstring = "";
+		
+		List<String> ratinglist = new ArrayList<String>();
+		List<String> averages = new ArrayList<String>();
+		ArrayList<List<String>> retval = new ArrayList<List<String>>();
+
+		try {
+			
+			Statement statement = Main.c.createStatement();
+			String sql;
+			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
+			
+			ResultSet rs = statement.executeQuery(sql);
+			rs.next();
+			
 			rank = rs.getString("rank");
-			atmosphere  = rs.getInt("atmosphere");
-			originality = rs.getInt("originality");
-			skill = rs.getInt("skill");
+			atmosphere  = rs.getFloat("atmosphere");
+			originality = rs.getFloat("originality");
+			skill = rs.getFloat("skill");
 			totalratings = rs.getInt("totalratings");
 			ratingstring = rs.getString("ratinglist");
 			
@@ -79,40 +93,126 @@ public class SQLLink {
 			}
 			
 			averages.add(rank);
-			averages.add(Integer.toString(atmosphere));
-			averages.add(Integer.toString(originality));
-			averages.add(Integer.toString(skill));
+			averages.add(Float.toString(atmosphere));
+			averages.add(Float.toString(originality));
+			averages.add(Float.toString(skill));
 			averages.add(Integer.toString(totalratings));
 			
 			retval.add(averages);
 			retval.add(ratinglist);
 			
-			rs.close();
-			stmt.close();
-			conn.close();
-			
 		} catch (SQLException se) {
-			Bukkit.getLogger().warning(se.getStackTrace().toString());
-		} catch (Exception e) {
-			Bukkit.getLogger().warning(e.getStackTrace().toString());
-		} finally {
-			try {
-				if (stmt != null) {
-					stmt.close();
-				}
-			} catch (SQLException se2) {
-				Bukkit.getLogger().warning(se2.getStackTrace().toString());
-			}
-			try {
-				if (conn != null) {
-					conn.close();
-				}
-			} catch (SQLException se) {
-				Bukkit.getLogger().warning(se.getStackTrace().toString());
-			}
+			throw new SQLException(se);
 		}
 		
 		return retval;
+		
+	}
+	
+	public static void removeApp(String name) throws SQLException {
+		
+		try {
+			
+			Statement statement = Main.c.createStatement();
+			String sql;
+			sql = "DELETE FROM playerapplications WHERE Name = '" + name + "';";
+			statement.executeUpdate(sql);
+			
+		} catch (SQLException se) {
+			throw new SQLException(se);
+		}
+		
+	}
+	
+	public static void ratePlayer(String rater, String name, Integer atmosphere, Integer originality, Integer skill) throws SQLException {
+		
+		int totalratings = 0;
+		String ratingstring = "";
+		
+		List<String> ratinglist = new ArrayList<String>();
+		
+		try {
+			
+			Statement statement = Main.c.createStatement();
+			String sql;
+			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
+			
+			ResultSet rs = statement.executeQuery(sql);
+			rs.next();
+			
+			totalratings = rs.getInt("totalratings") + 1;
+			ratingstring = rs.getString("ratinglist");
+			
+			boolean eos = false;
+			int count = 0;
+			while (eos == false) {
+				
+				if ((ratingstring.contains(":" + count + ":")) && (ratingstring.contains(":" + (count + 1) + ":"))) {
+					ratinglist.add(StringUtils.substringBetween(ratingstring, ":" + count + ":", ":" + (count + 1) + ":"));
+					count += 1;
+				} else if ((ratingstring.contains(":" + count + ":")) && (!ratingstring.contains(":" + (count + 1) + ":"))) {
+					ratinglist.add(StringUtils.substringAfter(ratingstring, ":" + count + ":"));
+					count += 1;
+					eos = true;
+				}
+				
+			}
+			
+			int TotalAt = 0;
+        	int TotalOr = 0;
+        	int TotalSk = 0;
+        	
+        	for (String cRater : ratinglist) {
+        		String[] cSplit = cRater.split("-");
+        		for (int i = 1; i < cSplit.length; i++) {
+            		if (i == 1) {
+            			TotalAt += Integer.parseInt(cSplit[i]);
+            		} else if (i == 2) {
+            			TotalOr += Integer.parseInt(cSplit[i]);
+            		} else if (i == 3) {
+            			TotalSk += Integer.parseInt(cSplit[i]);
+            		}
+            	}
+        	}
+        	
+        	String ratingliststring = "";
+        	int count2 = 0;
+        	for (String cRater : ratinglist) {
+        		ratingliststring += ":" + count2 + ":" + cRater;
+        		count2 += 1;
+        	}
+        	ratingliststring += ":" + count2 + ":" + name + "-" + atmosphere + "-" + originality + "-" + skill;
+        	
+        	float upAt = (TotalAt + atmosphere) / totalratings;
+        	float upOr = (TotalOr + originality) / totalratings;
+        	float upSk = (TotalSk + skill) / totalratings;
+        	statement.executeUpdate("UPDATE playerapplications SET atmosphere='" + upAt + "',originality='" + upOr +"',skill='" + upSk + "',totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';");
+
+		} catch (SQLException se) {
+			throw new SQLException(se);
+		}
+		
+	}
+	
+	public static String getAppRank(String name) throws SQLException {
+		
+		String rank;
+		
+		try {
+			
+			Statement statement = Main.c.createStatement();
+			String sql;
+			sql = "SELECT rank FROM playerapplications WHERE Name = '" + name + "';";
+			
+			ResultSet rs = statement.executeQuery(sql);
+			rs.next();
+			
+			rank = rs.getString("rank");
+			return rank;
+			
+		} catch (SQLException se) {
+			throw new SQLException(se);
+		}
 		
 	}
 	
