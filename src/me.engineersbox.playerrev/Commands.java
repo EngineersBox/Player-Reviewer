@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -54,20 +53,6 @@ public class Commands implements CommandExecutor {
 	    		return true;
 	    	}
 	    }
-	}
-	
-	public static int returnInRange(String value) throws NumberFormatException {
-		Range<Integer> rangeInt = Range.between(0, 100);
-		try {
-			if (rangeInt.contains(Integer.parseInt(value))) {
-				return Integer.parseInt(value);
-			} else {
-				return 0;
-			}
-		} catch (NumberFormatException e) {
-			throw new NumberFormatException(value);
-		}
-		
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -131,7 +116,7 @@ public class Commands implements CommandExecutor {
 							
 							try {
 								
-								SQLLink.ratePlayer(p.getDisplayName(), args[1], returnInRange(args[2]), returnInRange(args[3]), returnInRange(args[4]));
+								SQLLink.ratePlayer(p.getDisplayName(), args[1], lib.returnInRange(args[2]), lib.returnInRange(args[3]), lib.returnInRange(args[4]));
 								p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
 								successFlag = false;
 								
