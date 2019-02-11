@@ -91,8 +91,12 @@ public class Commands implements CommandExecutor {
 							
 							if (RankEnum.isValid(args[1].toUpperCase()) == true) {
 								
-								InvConfig.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
-								p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+								try {
+									SQLLink.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+								} catch (SQLException e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+								}
 								
 							} else {
 								
@@ -127,19 +131,20 @@ public class Commands implements CommandExecutor {
 							
 							try {
 								
-									InvConfig.ratePlayer(p.getDisplayName(), args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
-									p.sendMessage(Main.prefix + ChatColor.AQUA + args[1] + "'s Application For " + InvConfig.getAppRank(args[1]) + " Submitted!");
-									successFlag = false;
+								SQLLink.ratePlayer(p.getDisplayName(), args[1], returnInRange(args[2]), returnInRange(args[3]), returnInRange(args[4]));
+								p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+								successFlag = false;
 								
 							} catch (NumberFormatException e) {
 								
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
 								successFlag = false;
-							
-							} catch (ArrayStoreException e) {
 								
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							} catch (SQLException se) {
+								
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does not Exist!");
+								Bukkit.getLogger().warning(se.getMessage());
 								successFlag = false;
 								
 							}
@@ -189,9 +194,7 @@ public class Commands implements CommandExecutor {
 							} catch (ArrayStoreException e) {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
 							} catch (SQLException e) {
-								Bukkit.getLogger().warning(e.getMessage());
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Query");
-								e.printStackTrace();
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does Not Exist!");
 							}
 							
 						} else {
@@ -211,11 +214,11 @@ public class Commands implements CommandExecutor {
 								if (args[2].equalsIgnoreCase("approve")) {
 									
 									//TODO: Remove application and approve rank (hook into rank plugin)
-									//String rank = InvConfig.getAppRank(args[1]);
+									//String rank = SQLLink.getAppRank(args[1]);
 									
 								} else if (args[2].equalsIgnoreCase("deny")) {
 									
-									InvConfig.removeApp(args[1]);
+									SQLLink.removeApp(args[1]);
 									//TODO: Send message of application denial to player
 									
 								} else {
@@ -225,7 +228,7 @@ public class Commands implements CommandExecutor {
 									
 								}
 								
-							} catch (ArrayStoreException e) {
+							} catch (SQLException e) {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
 							}
 							
@@ -243,11 +246,11 @@ public class Commands implements CommandExecutor {
 							
 							try {
 								
-								InvConfig.removeApp(args[1]);
+								SQLLink.removeApp(args[1]);
 								p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 								
-							} catch (ArrayStoreException e) {
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							} catch (SQLException e) {
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + "Does Not Exist!");
 							}
 							
 						} else {
