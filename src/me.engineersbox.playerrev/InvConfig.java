@@ -13,6 +13,14 @@ public class InvConfig extends AbstractFile {
        
     }
     
+    public static boolean SQLEnabled() {
+    	if (config.contains("Config.Use-SQL")) {
+    		return config.getBoolean("Config.Use-SQL");
+    	} else {
+    		return false;
+    	}
+    }
+    
     public static void newApp(String pname, String rank) throws ArrayStoreException {
     	if (!config.contains(pname)) {
 	    	List<String> raters = new ArrayList<String>();
