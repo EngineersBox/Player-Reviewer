@@ -47,11 +47,6 @@ public class SQLLink {
 	//returns rank, atmosphere average, originality average, skill average, totalratings and ratinglist
 	public static ArrayList<List<String>> getRatingValues(String name) throws SQLException {
 	
-		String rank = "";
-		float atmosphere = 0;
-		float originality = 0;
-		float skill = 0;
-		int totalratings = 0;
 		String ratingstring = "";
 		List<String> ratinglist = new ArrayList<String>();
 		List<String> averages = new ArrayList<String>();
@@ -64,20 +59,14 @@ public class SQLLink {
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			rs.next();
 			
-			rank = rs.getString("rank");
-			atmosphere  = rs.getFloat("atmosphere");
-			originality = rs.getFloat("originality");
-			skill = rs.getFloat("skill");
-			totalratings = rs.getInt("totalratings");
+			averages.add(rs.getString("rank"));
+			averages.add(Float.toString(rs.getFloat("atmosphere")));
+			averages.add(Float.toString(rs.getFloat("originality")));
+			averages.add(Float.toString(rs.getFloat("skill")));
+			averages.add(Integer.toString(rs.getInt("totalratings")));
 			ratingstring = rs.getString("ratinglist");
 			
 			ratinglist = lib.ratingListCreator(ratingstring);
-			
-			averages.add(rank);
-			averages.add(Float.toString(atmosphere));
-			averages.add(Float.toString(originality));
-			averages.add(Float.toString(skill));
-			averages.add(Integer.toString(totalratings));
 			
 			retval.add(averages);
 			retval.add(ratinglist);
