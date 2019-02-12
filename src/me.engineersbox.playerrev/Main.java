@@ -27,6 +27,7 @@ public class Main extends JavaPlugin implements Listener {
     	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
     	p.sendMessage("");
 	}
+	public static boolean UseSQL = InvConfig.SQLEnabled();
 	static MySQL MySQL;
 	static Connection c = null;
 	
@@ -38,18 +39,19 @@ public class Main extends JavaPlugin implements Listener {
     	
     	new InvConfig(this);
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
-    	MySQL = new MySQL(SQLConfig.getHOSTNAME(), "", SQLConfig.getDATABASE(), SQLConfig.getUSER(), SQLConfig.getPASS());
+    	if (UseSQL == true) {
+    		MySQL = new MySQL(SQLConfig.getHOSTNAME(), "", SQLConfig.getDATABASE(), SQLConfig.getUSER(), SQLConfig.getPASS());
+        	
+        	try {
+    			c = MySQL.openConnection();
+    		} catch (SQLException | ClassNotFoundException e) {
+    			Bukkit.getLogger().warning(e.getMessage());
+    			e.printStackTrace();
+    		}
+    	} else {
+    		
+    	}
     	
-    	try {
-			c = MySQL.openConnection();
-		} catch (ClassNotFoundException e) {
-			Bukkit.getLogger().warning(e.getMessage());
-			e.printStackTrace();
-		} catch (SQLException e) {
-			Bukkit.getLogger().warning(e.getMessage());
-			e.printStackTrace();
-		}
-        
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
         getCommand("pr apply").setExecutor(new Commands());
@@ -64,11 +66,14 @@ public class Main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
     	AbstractFile.saveConfig();
-    	try {
-			MySQL.closeConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+    	if (UseSQL == true) {
+    		try {
+    			MySQL.closeConnection();
+    		} catch (SQLException e) {
+    			e.printStackTrace();
+    		}
+    	}
+ 
     }
     
 }
