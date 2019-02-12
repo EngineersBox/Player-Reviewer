@@ -5,7 +5,7 @@ import java.util.List;
 
 import me.engineersbox.playerrev.Main;
 
-public class InvConfig extends AbstractFile{
+public class InvConfig extends AbstractFile {
 
     public InvConfig(Main main) {
        
@@ -13,31 +13,28 @@ public class InvConfig extends AbstractFile{
        
     }
     
-    public static void newApp(String pname, String rank) {
+    public static void newApp(String pname, String rank) throws ArrayStoreException {
     	if (!config.contains(pname)) {
-	    	List<String> criteria = new ArrayList<String>();
 	    	List<String> raters = new ArrayList<String>();
 	    	
-	    	criteria.add("Rank-" + rank);
-	    	criteria.add("Atmosphere-0-0");
-	    	criteria.add("Originality-0-0");
-	    	criteria.add("Skill-0-0");
-	    	criteria.add("TotalRatings-0");
-	    	
+	    	config.set(pname + ".Rank", rank);
+	    	config.set(pname + ".Atmosphere", "0-0");
+	    	config.set(pname + ".Originality", "0-0");
+	    	config.set(pname + ".Skill", "0-0");
+	    	config.set(pname + ".TotalRatings", "0");
 	    	raters.add("Name-0-0-0");
-	    	
-	    	config.set(pname, criteria);
-	    	config.set(pname + "raters", raters);
+	    	config.set(pname + ".Raters", raters);
 	        saveConfig();
+    	} else {
+    		throw new ArrayStoreException();
     	}
 	        
     }
     
     public static void removeApp(String pname) throws ArrayStoreException {
     	
-    	if ((config.getString(pname) != null) && (config.getString(pname + "raters") != null)) {
+    	if (config.getList(pname) != null) {
 			config.set(pname, null);
-			config.set(pname + "raters", null);
 			saveConfig();
     	} else {
     		throw new ArrayStoreException();
@@ -47,15 +44,14 @@ public class InvConfig extends AbstractFile{
     
     public static void ratePlayer(String prater, String pname, Integer atmosphere, Integer originality, Integer skill) throws ArrayStoreException {
     	
-    	if ((config.getString(pname) != null) && (config.getString(pname + "raters") != null)) {
+    	if (config.getList(pname) != null) {
     		
-    		List<String> criteria = config.getStringList(pname);
-        	List<String> raters = config.getStringList(pname + "raters");
+        	List<String> raters = config.getStringList(pname + ".Raters");
         	
-        	int AtCount = Integer.parseInt(criteria.get(1).substring(criteria.get(1).lastIndexOf("-") + 1)) + 1;
-        	int OrCount = Integer.parseInt(criteria.get(2).substring(criteria.get(2).lastIndexOf("-") + 1)) + 1;
-        	int SkCount = Integer.parseInt(criteria.get(3).substring(criteria.get(3).lastIndexOf("-") + 1)) + 1;
-        	int cTotalRatings = Integer.parseInt(criteria.get(4).substring(criteria.get(4).indexOf("-") + 1)) + 1;
+        	int AtCount = Integer.parseInt(config.getString(pname + ".Atmosphere").substring(config.getString(pname + ".Atmosphere").lastIndexOf("-") + 1)) + 1;
+        	int OrCount = Integer.parseInt(config.getString(pname + ".Originality").substring(config.getString(pname + ".Originality").lastIndexOf("-") + 1)) + 1;
+        	int SkCount = Integer.parseInt(config.getString(pname + ".Skill").substring(config.getString(pname + ".Skill").lastIndexOf("-") + 1)) + 1;
+        	int cTotalRatings = Integer.parseInt(config.getString(pname + ".TotalRatings")) + 1;
         	
         	int TotalAt = 0;
         	int TotalOr = 0;
@@ -73,10 +69,10 @@ public class InvConfig extends AbstractFile{
             	}
         	}
         	
-        	criteria.set(1, "Atmosphere-" + Float.toString((TotalAt + atmosphere) / cTotalRatings) + "-" + AtCount);
-        	criteria.set(2, "Originality-" + Float.toString((TotalOr + originality) / cTotalRatings) + "-" + OrCount);
-        	criteria.set(3, "Skill-" + Float.toString((TotalSk + skill) / cTotalRatings) + "-" + SkCount);
-        	criteria.set(4, "TotalRatings-" + Integer.toString(cTotalRatings));
+        	config.set(pname + ".Atmosphere", Float.toString((TotalAt + atmosphere) / cTotalRatings) + "-" + AtCount);
+        	config.set(pname + ".Originality", Float.toString((TotalOr + originality) / cTotalRatings) + "-" + OrCount);
+        	config.set(pname + ".Skill", Float.toString((TotalSk + skill) / cTotalRatings) + "-" + SkCount);
+        	config.set(pname + ".TotalRatings", Integer.toString(cTotalRatings));
         	
         	if (raters.get(0).equalsIgnoreCase("Name-0-0-0")) {
         		raters.set(0, prater + "-" + atmosphere + "-" + originality + "-" + skill);
@@ -84,8 +80,7 @@ public class InvConfig extends AbstractFile{
         		raters.add(prater + "-" + atmosphere + "-" + originality + "-" + skill);
         	}
         	
-        	config.set(pname, criteria);
-        	config.set(pname + "raters", raters);
+        	config.set(pname + ".Raters", raters);
         	saveConfig();
     		
     	} else {
@@ -98,15 +93,15 @@ public class InvConfig extends AbstractFile{
     
     public static ArrayList<List<String>> getRatings(String pname) throws ArrayStoreException {
     	
-    	if ((config.getString(pname) != null) && (config.getString(pname + "raters") != null)) {
+    	if (config.getList(pname) != null) {
     		
-    		List<String> criteria = config.getStringList(pname);
         	List<String> raters = config.getStringList(pname + "raters");
         	
-        	String cAtmosphere = criteria.get(1).substring(criteria.get(1).indexOf("-") + 1, criteria.get(1).lastIndexOf("-"));
-        	String cOriginality = criteria.get(2).substring(criteria.get(2).indexOf("-") + 1, criteria.get(2).lastIndexOf("-"));
-        	String cSkill = criteria.get(3).substring(criteria.get(3).indexOf("-") + 1, criteria.get(3).lastIndexOf("-"));
-        	String cTotalRatings = criteria.get(4).substring(criteria.get(4).indexOf("-") + 1);
+        	String cAtmosphere = config.getString(pname + ".Atmosphere").substring(0, config.getString(pname + ".Atmosphere").lastIndexOf("-"));
+        	String cOriginality = config.getString(pname + ".Originality").substring(0, config.getString(pname + ".Originality").lastIndexOf("-"));
+        	String cSkill = config.getString(pname + ".Skill").substring(0, config.getString(pname + ".Skill").lastIndexOf("-"));
+        	String cTotalRatings = config.getString(pname + ".TotalRatings");
+        	String rank = config.getString(pname + ".Rank");
         	
         	//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
         	List<String> averages = new ArrayList<String>();
@@ -115,6 +110,7 @@ public class InvConfig extends AbstractFile{
         	averages.add(cOriginality + " ");
         	averages.add(cSkill + " ");
         	averages.add(cTotalRatings);
+        	averages.add(rank);
         	
         	ArrayList<List<String>> retval = new ArrayList<List<String>>();
         	retval.add(raters);
@@ -130,9 +126,8 @@ public class InvConfig extends AbstractFile{
     
     public static String getAppRank(String pname) throws ArrayStoreException {
     	
-    	if ((config.getString(pname) != null) && (config.getString(pname + "raters") != null)) {
-	    	List<String> criteria = config.getStringList(pname);
-	    	return criteria.get(0).substring(criteria.get(0).lastIndexOf("-") + 1);
+    	if (config.getList(pname) != null) {
+	    	return config.getString(pname + ".Rank");
     	} else {
     		throw new ArrayStoreException();
     	}
