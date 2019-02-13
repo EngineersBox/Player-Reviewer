@@ -27,8 +27,8 @@ public class Main extends JavaPlugin implements Listener {
     	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
     	p.sendMessage("");
 	}
-	public static boolean UseSQL = InvConfig.SQLEnabled();
-	static MySQL MySQL;
+	public static boolean UseSQL;
+	public static MySQL MySQL;
 	static Connection c = null;
 	
     public void onEnable() {
@@ -39,17 +39,14 @@ public class Main extends JavaPlugin implements Listener {
     	
     	new InvConfig(this);
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
+    	UseSQL = SQLConfig.SQLEnabled();
     	if (UseSQL == true) {
     		MySQL = new MySQL(SQLConfig.getHOSTNAME(), "", SQLConfig.getDATABASE(), SQLConfig.getUSER(), SQLConfig.getPASS());
-        	
         	try {
     			c = MySQL.openConnection();
     		} catch (SQLException | ClassNotFoundException e) {
-    			Bukkit.getLogger().warning(e.getMessage());
     			e.printStackTrace();
     		}
-    	} else {
-    		
     	}
     	
         getCommand("pr").setExecutor(new Commands());
@@ -57,7 +54,7 @@ public class Main extends JavaPlugin implements Listener {
         getCommand("pr apply").setExecutor(new Commands());
         getCommand("pr validranks").setExecutor(new Commands());
         getCommand("pr rate").setExecutor(new Commands());
-        getCommand("pr viewratings").setExecutor(new Commands());
+        getCommand("pr ratings").setExecutor(new Commands());
         getCommand("pr approval").setExecutor(new Commands());
         getCommand("pr removeapplication").setExecutor(new Commands());
         getCommand("pr version").setExecutor(new Commands());
