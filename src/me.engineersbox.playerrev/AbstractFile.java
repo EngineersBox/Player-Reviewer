@@ -24,6 +24,7 @@ public class AbstractFile {
             }
         }
         AbstractFile.config = YamlConfiguration.loadConfiguration(file);
+        config.addDefault("User-Details.UseSQL", false);
         config.addDefault("User-Details.HOSTNAME", "localhost");
         config.addDefault("User-Details.DATABASE", "db");
         config.addDefault("User-Details.PORT", "3306");
