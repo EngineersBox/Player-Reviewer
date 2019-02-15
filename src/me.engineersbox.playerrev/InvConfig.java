@@ -1,8 +1,10 @@
 package me.engineersbox.playerrev;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import MethodLib.Lib;
 import me.engineersbox.playerrev.Main;
 
 public class InvConfig extends AbstractFile {
@@ -13,14 +15,6 @@ public class InvConfig extends AbstractFile {
        
     }
     
-    public static boolean SQLEnabled() {
-    	if (config.contains("Config.Use-SQL")) {
-    		return config.getBoolean("Config.Use-SQL");
-    	} else {
-    		return false;
-    	}
-    }
-    
     public static void newApp(String pname, String rank) throws ArrayStoreException {
     	if (!config.contains(pname)) {
 	    	List<String> raters = new ArrayList<String>();
@@ -28,9 +22,12 @@ public class InvConfig extends AbstractFile {
 	    	config.set(pname + ".Rank", rank);
 	    	config.set(pname + ".Atmosphere", "0-0");
 	    	config.set(pname + ".Originality", "0-0");
-	    	config.set(pname + ".Skill", "0-0");
+	    	config.set(pname + ".Terrain", "0-0");
+	    	config.set(pname + ".Structure", "0-0");
+	    	config.set(pname + ".Layout", "0-0");
+	    	config.set(pname + ".PlotLoc", ":w:world:x:posx:y:posy:z:posz");
 	    	config.set(pname + ".TotalRatings", "0");
-	    	raters.add("Name-0-0-0");
+	    	raters.add("Name-0-0-0-0-0");
 	    	config.set(pname + ".Raters", raters);
 	        saveConfig();
     	} else {
@@ -50,7 +47,7 @@ public class InvConfig extends AbstractFile {
     	
     }
     
-    public static void ratePlayer(String prater, String pname, Integer atmosphere, Integer originality, Integer skill) throws ArrayStoreException {
+    public static void ratePlayer(String prater, String pname, Integer atmosphere, Integer originality, Integer terrain, Integer structure, Integer layout) throws ArrayStoreException {
     	
     	if (config.getList(pname) != null) {
     		
@@ -58,34 +55,29 @@ public class InvConfig extends AbstractFile {
         	
         	int AtCount = Integer.parseInt(config.getString(pname + ".Atmosphere").substring(config.getString(pname + ".Atmosphere").lastIndexOf("-") + 1)) + 1;
         	int OrCount = Integer.parseInt(config.getString(pname + ".Originality").substring(config.getString(pname + ".Originality").lastIndexOf("-") + 1)) + 1;
-        	int SkCount = Integer.parseInt(config.getString(pname + ".Skill").substring(config.getString(pname + ".Skill").lastIndexOf("-") + 1)) + 1;
+        	int TrCount = Integer.parseInt(config.getString(pname + ".Terrain").substring(config.getString(pname + ".Terrain").lastIndexOf("-") + 1)) + 1;
+        	int StCount = Integer.parseInt(config.getString(pname + ".Structure").substring(config.getString(pname + ".Structure").lastIndexOf("-") + 1)) + 1;
+        	int LaCount = Integer.parseInt(config.getString(pname + ".Layout").substring(config.getString(pname + ".Layout").lastIndexOf("-") + 1)) + 1;
         	int cTotalRatings = Integer.parseInt(config.getString(pname + ".TotalRatings")) + 1;
         	
-        	int TotalAt = 0;
-        	int TotalOr = 0;
-        	int TotalSk = 0;
-        	for (String cRater : raters) {
-        		String[] cSplit = cRater.split("-");
-        		for (int i = 1; i < cSplit.length; i++) {
-            		if (i == 1) {
-            			TotalAt += Integer.parseInt(cSplit[i]);
-            		} else if (i == 2) {
-            			TotalOr += Integer.parseInt(cSplit[i]);
-            		} else if (i == 3) {
-            			TotalSk += Integer.parseInt(cSplit[i]);
-            		}
-            	}
-        	}
+        	List<Integer> valuelist = new ArrayList<Integer>();
+			try {
+				valuelist = Lib.valueListCreator(raters);
+			} catch (SQLException e) {
+				throw new ArrayStoreException();
+			}
         	
-        	config.set(pname + ".Atmosphere", Float.toString((TotalAt + atmosphere) / cTotalRatings) + "-" + AtCount);
-        	config.set(pname + ".Originality", Float.toString((TotalOr + originality) / cTotalRatings) + "-" + OrCount);
-        	config.set(pname + ".Skill", Float.toString((TotalSk + skill) / cTotalRatings) + "-" + SkCount);
+        	config.set(pname + ".Atmosphere", Float.toString((valuelist.get(0) + atmosphere) / cTotalRatings) + "-" + AtCount);
+        	config.set(pname + ".Originality", Float.toString((valuelist.get(1) + originality) / cTotalRatings) + "-" + OrCount);
+        	config.set(pname + ".Terrain", Float.toString((valuelist.get(2) + terrain) / cTotalRatings) + "-" + TrCount);
+        	config.set(pname + ".Structure", Float.toString((valuelist.get(3) + structure) / cTotalRatings) + "-" + StCount);
+        	config.set(pname + ".Layout", Float.toString((valuelist.get(4) + layout) / cTotalRatings) + "-" + LaCount);
         	config.set(pname + ".TotalRatings", Integer.toString(cTotalRatings));
         	
-        	if (raters.get(0).equalsIgnoreCase("Name-0-0-0")) {
-        		raters.set(0, prater + "-" + atmosphere + "-" + originality + "-" + skill);
+        	if (raters.get(0).equalsIgnoreCase("Name-0-0-0-0-0")) {
+        		raters.set(0, prater + "-" + atmosphere + "-" + originality + "-" + terrain + "-" + structure + "-" + layout);
         	} else {
-        		raters.add(prater + "-" + atmosphere + "-" + originality + "-" + skill);
+        		raters.add(prater + "-" + atmosphere + "-" + originality + "-" + terrain + "-" + structure + "-" + layout);
         	}
         	
         	config.set(pname + ".Raters", raters);
@@ -107,16 +99,19 @@ public class InvConfig extends AbstractFile {
         	
         	String cAtmosphere = config.getString(pname + ".Atmosphere").substring(0, config.getString(pname + ".Atmosphere").lastIndexOf("-"));
         	String cOriginality = config.getString(pname + ".Originality").substring(0, config.getString(pname + ".Originality").lastIndexOf("-"));
-        	String cSkill = config.getString(pname + ".Skill").substring(0, config.getString(pname + ".Skill").lastIndexOf("-"));
+        	String cTerrain = config.getString(pname + ".Terrain").substring(0, config.getString(pname + ".Terrain").lastIndexOf("-"));
+        	String cStructure = config.getString(pname + ".Structure").substring(0, config.getString(pname + ".Structure").lastIndexOf("-"));
+        	String cLayout = config.getString(pname + ".Layout").substring(0, config.getString(pname + ".Layout").lastIndexOf("-"));
         	String cTotalRatings = config.getString(pname + ".TotalRatings");
         	String rank = config.getString(pname + ".Rank");
         	
-        	//raters name-0-0-0, avAt-avOr-avSk-TotalRatings
         	List<String> averages = new ArrayList<String>();
         	
         	averages.add(cAtmosphere + " ");
         	averages.add(cOriginality + " ");
-        	averages.add(cSkill + " ");
+        	averages.add(cTerrain + " ");
+        	averages.add(cStructure + " ");
+        	averages.add(cLayout + " ");
         	averages.add(cTotalRatings);
         	averages.add(rank);
         	
