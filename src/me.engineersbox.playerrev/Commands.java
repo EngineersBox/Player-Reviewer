@@ -13,6 +13,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import MethodLib.Lib;
+import me.engineersbox.playerrev.mysql.SQLLink;
+
 public class Commands implements CommandExecutor {
 	
 	public enum RankEnum {
@@ -78,7 +81,7 @@ public class Commands implements CommandExecutor {
 								
 								try {
 									if (Main.UseSQL == true) {
-										SQLLink.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
+										SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
 										InvConfig.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
@@ -126,20 +129,20 @@ public class Commands implements CommandExecutor {
         		    	Main.InfoHeader(p, "Player Reviewer Valid Ranks");
         		    	return true;
         		    	
-					//pr rate <player> <atmosphere> <originality> <skill>
+					//pr rate <player> <atmosphere> <originality> <terrain> <structure> <layout>
 					} else if ((args[0].equalsIgnoreCase("rate")) && (args.length > 1) && (p.hasPermission("pr.rate"))) {
 						
-						if (args.length == 5) {
+						if (args.length == 7) {
 							
 							boolean successFlag = true;
 							
 							try {
 								
-								if (Main.UseSQL = true) {
-									SQLLink.ratePlayer(p.getDisplayName(), args[1], lib.returnInRange(args[2]), lib.returnInRange(args[3]), lib.returnInRange(args[4]));
+								if (Main.UseSQL == true) {
+									SQLLink.ratePlayer(p.getDisplayName(), args[1], Lib.returnInRange(args[2]), Lib.returnInRange(args[3]), Lib.returnInRange(args[4]), Lib.returnInRange(args[5]), Lib.returnInRange(args[6]));
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
 								} else {
-									InvConfig.ratePlayer(p.getDisplayName(), args[1], lib.returnInRange(args[2]), lib.returnInRange(args[3]), lib.returnInRange(args[4]));
+									InvConfig.ratePlayer(p.getDisplayName(), args[1], Lib.returnInRange(args[2]), Lib.returnInRange(args[3]), Lib.returnInRange(args[4]), Lib.returnInRange(args[5]), Lib.returnInRange(args[6]));
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
 								}
 								successFlag = false;
@@ -181,21 +184,21 @@ public class Commands implements CommandExecutor {
 							
 							try {
 
-								if (Main.UseSQL = true) {
+								if (Main.UseSQL == true) {
 									ArrayList<List<String>> Ratings = SQLLink.getRatingValues(args[1]);
 									String appRank = Ratings.get(0).get(0);
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Skill>");
+									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Terrain> <Structure> <Layout>");
 									p.sendMessage("");
 									for (String ra : Ratings.get(1)) {
 										String[] ratingValues = ra.split("-");
-										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + "");
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + " " + ratingValues[4] + " " + ratingValues[5]);
 									}
 									p.sendMessage("");
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(1) + " " + Ratings.get(0).get(2) + " " + Ratings.get(0).get(3));
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(4));
+									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(1) + " " + Ratings.get(0).get(2) + " " + Ratings.get(0).get(3) + " " + Ratings.get(0).get(4) + " " + Ratings.get(0).get(5));
+									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(7));
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank.substring(0, 1).toUpperCase() + appRank.substring(1));
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
 								} else {
@@ -204,14 +207,14 @@ public class Commands implements CommandExecutor {
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Skill>");
+									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Terrain> <Structure> <Layout>");
 									p.sendMessage("");
 									for (String ra : Ratings.get(0)) {
 										String[] ratingValues = ra.split("-");
-										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + "");
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + " " + ratingValues[4] + " " + ratingValues[5]);
 									}
 									p.sendMessage("");
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + " " + Ratings.get(1).get(1) + " " + Ratings.get(1).get(2));
+									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + " " + Ratings.get(1).get(1) + " " + Ratings.get(1).get(2) + " " + Ratings.get(1).get(3) + " " + Ratings.get(1).get(4));
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(3));
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank);
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
@@ -238,9 +241,12 @@ public class Commands implements CommandExecutor {
 							try {
 
 								if (args[2].equalsIgnoreCase("approve")) {
-									
 									//TODO: Remove application and approve rank (hook into rank plugin)
-									//String rank = SQLLink.getAppRank(args[1]);
+									if (Main.UseSQL == true) {
+										//String rank = SQLLink.getAppRank(args[1]);
+									} else {
+										//String rank = InvConfig.getAppRank(args[1]);
+									}
 									
 								} else if (args[2].equalsIgnoreCase("deny")) {
 									
@@ -271,7 +277,7 @@ public class Commands implements CommandExecutor {
 						if (args.length == 2) {
 							
 							try {
-								 if (Main.UseSQL = true) {
+								 if (Main.UseSQL == true) {
 									 SQLLink.removeApp(args[1]);
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 								 } else {
