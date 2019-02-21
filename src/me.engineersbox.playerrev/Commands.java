@@ -84,7 +84,7 @@ public class Commands implements CommandExecutor {
 										SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
-										InvConfig.newApp(p.getDisplayName(), args[1].toString().toLowerCase());
+										InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
 									
@@ -120,7 +120,7 @@ public class Commands implements CommandExecutor {
 		            	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv help " + ChatColor.WHITE + ":: " + ChatColor.RED + "Opens This Menu");
 		            	Main.InfoHeader(p, "Player Reviewer");
 						
-					} else if ((args[0].equalsIgnoreCase("validranks")) && (p.hasPermission("pr.validranks"))) {
+					} else if (((args[0].equalsIgnoreCase("validranks")) | (args[0].equalsIgnoreCase("vr")) | (args[0].equalsIgnoreCase("ranks"))) && (p.hasPermission("pr.validranks"))) {
 						
 						Main.InfoHeader(p, "Player Reviewer Valid Ranks");
         		    	for (RankEnum re : RankEnum.values()) {
@@ -177,6 +177,20 @@ public class Commands implements CommandExecutor {
 						}
 						
 					
+					} else if (((args[0].equalsIgnoreCase("gotoplot")) | (args[0].equalsIgnoreCase("plot"))) && (p.hasPermission("pr.gotoplot"))) {
+						
+						try {
+							
+							if (Main.UseSQL == true) {
+								p.teleport(SQLLink.getPlotLocation(args[1]));
+							} else {
+								p.teleport(InvConfig.getPlotLocation(args[1]));
+							}
+							
+						} catch (SQLException | ArrayStoreException se) {
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application Does Not Exist!");
+						}
+						
 					//pr ratings <player>
 					} else if (args[0].equalsIgnoreCase("ratings")) {
 						
@@ -272,7 +286,7 @@ public class Commands implements CommandExecutor {
 						}
 						
 					//pr removeapplication <name>
-					} else if ((args[0].equalsIgnoreCase("removeapplication")) && (p.hasPermission("pr.removeapplication"))) {
+					} else if (((args[0].equalsIgnoreCase("removeapplication")) | (args[0].equalsIgnoreCase("ra")) | (args[0].equalsIgnoreCase("remapp"))) && (p.hasPermission("pr.removeapplication"))) {
 						
 						if (args.length == 2) {
 							
