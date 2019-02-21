@@ -4,26 +4,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import MethodLib.DataSet;
+import MethodLib.Lib;
 import me.engineersbox.playerrev.Main;
 
 public class SQLLink {
-	
-	/* Table Setup
-	 * Table Name = applicants
-	 * Table format:
-	 * NAME | RANK | ATMOSPHERE | ORIGINALITY | SKILL | TOTALRATINGS | RATING LIST
-	 * 
-	 * NAME = name of the applicant
-	 * RANK = rank applied for
-	 * ATMOSPHERE = averaged atmosphere rating
-	 * ORIGINALITY = averaged originality rating
-	 * SKILL = averaged skill rating
-	 * TOTALRATINGS = total number of ratings recieved
-	 * RATINGLIST = list of previous ratings in format: [:0:Name-0-0-0:1:Name-0-0-0:2:Name-0-0-0]
-	 */
 	
 	public static void newApp(Player p, String name, String rank) throws SQLException {
 		
@@ -32,15 +20,13 @@ public class SQLLink {
 			String sql;
 			sql = "SELECT Name FROM playerapplications WHERE Name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
-			//Plot appPlot = Main.plotapi.getPlot(p.getLocation());
-			//Map<String, Object> locmap = Lib.getCoords(p.getLocation());
-			//String coordsstring = Lib.getCoordsString(p.getLocation());
+			String coordsstring = Lib.getCoordsString(p.getLocation());
 			
 			if (rs.next()) {
 				throw new SQLException();
 			} else {
 				
-				sql = "INSERT INTO playerapplications (Name, rank, atmosphere, originality, terrain, structure, layout, plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', '0', '0', '0', '0', '0', '0', '0', '');";
+				sql = "INSERT INTO playerapplications (Name, rank, atmosphere, originality, terrain, structure, layout, plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', '0', '0', '0', '0', '0', '" + coordsstring + "', '0', '');";
 				Main.MySQL.noRetUpdate(sql);
 				
 			}
@@ -69,11 +55,26 @@ public class SQLLink {
 			retval.add(retdata.getRatings());
 			
 		} catch (SQLException | ClassNotFoundException se) {
-			se.printStackTrace();
 			throw new SQLException(se);
 		}
 		
 		return retval;
+		
+	}
+	
+	public static Location getPlotLocation(String name) throws SQLException {
+		
+		try {
+			
+			String sql;
+			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
+			ResultSet rs = Main.MySQL.querySQL(sql);
+			DataSet retdata = new DataSet(rs);
+			return retdata.getPlotLoc();
+			
+		} catch (SQLException | ClassNotFoundException se) {
+			throw new SQLException(se);
+		}
 		
 	}
 	
