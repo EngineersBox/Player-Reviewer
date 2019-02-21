@@ -4,6 +4,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
 import MethodLib.Lib;
 import me.engineersbox.playerrev.Main;
 
@@ -15,7 +18,7 @@ public class InvConfig extends AbstractFile {
        
     }
     
-    public static void newApp(String pname, String rank) throws ArrayStoreException {
+    public static void newApp(Player p, String pname, String rank) throws ArrayStoreException {
     	if (!config.contains(pname)) {
 	    	List<String> raters = new ArrayList<String>();
 	    	
@@ -25,7 +28,7 @@ public class InvConfig extends AbstractFile {
 	    	config.set(pname + ".Terrain", "0-0");
 	    	config.set(pname + ".Structure", "0-0");
 	    	config.set(pname + ".Layout", "0-0");
-	    	config.set(pname + ".PlotLoc", ":w:world:x:posx:y:posy:z:posz");
+	    	config.set(pname + ".PlotLoc", Lib.getCoordsString(p.getLocation()));
 	    	config.set(pname + ".TotalRatings", "0");
 	    	raters.add("Name-0-0-0-0-0");
 	    	config.set(pname + ".Raters", raters);
@@ -121,6 +124,16 @@ public class InvConfig extends AbstractFile {
         	
         	return retval;
     		
+    	} else {
+    		throw new ArrayStoreException();
+    	}
+    	
+    }
+    
+    public static Location getPlotLocation(String pname) throws ArrayStoreException {
+    	
+    	if (config.getList(pname) != null) {
+    		return Lib.getLoc(config.getString(pname + ".PlotLoc"));
     	} else {
     		throw new ArrayStoreException();
     	}
