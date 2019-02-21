@@ -1,6 +1,6 @@
 name: PlayerReviewer
 main: me.engineersbox.playerrev.Main
-version: 1.3
+version: 1.6
 author: EngineersBox
 description: Review Player Rank Applications
 commands:
@@ -14,20 +14,26 @@ commands:
         permission: pr.help
     pr apply:
         description: Allow Player To Apply For Rank Reviewal
-        usage: /pr apply <name>
+        usage: /pr apply <rank>
         permission: pr.apply
     pr validranks:
         description: Displays All Valid Ranks
         usage: /pr validranks
         permission: pr.validranks
+        aliases: [ranks, vr]
     pr rate:
         description: Allows Player To Rate Open Applications
-        usage: /pr rate <player> <atmosphere> <originality> <skill>
+        usage: /pr rate <player> <atmosphere> <originality> <terrain> <structure> <layout>
         permission: pr.rate
-    pr viewratings:
+    pr gotoplot:
+        description: Allows Player To Go To Plot Of Open Application
+        usage: /pr gotoplot <player>
+        permission: pr.gotoplot
+        aliases: [plot]
+    pr ratings:
         description: Displays Recieved Ratings Of Open Application
-        usage: /pr viewratings <player>
-        permission: pr.viewratings
+        usage: /pr ratings <player>
+        permission: pr.ratings
     pr approval:
         description: Allows Player To Approve Or Deny Open Applications
         usage: /pr approval <approve/deny>
@@ -36,6 +42,7 @@ commands:
         description: Allows Player To Remove Open Application
         usage: /pr removeapplication <name>
         permission: pr.removeapplication
+        aliases: [remapp, ra]
     pr version:
         description: Allows Player To View Plugin Version Information
         usage: /pr version
@@ -49,8 +56,11 @@ permissions:
             pr.apply: true
             pr.validranks: true
             pr.rate: true
-            pr.viewratings: true
+            pr.gotoplot: true
+            pr.ratings: true
             pr.approval: true
+            pr.removeapplication: true
+            pr.version: true
     pr.use:
         description: Allows The Use Of The pr Command
         default: true
@@ -66,7 +76,10 @@ permissions:
     pr.rate:
         description: Allows Player To Rate Open Applications
         default: op
-    pr.viewratings:
+    pr gotoplot:
+        description: Allows Player To Go To Plot Of Open Application
+        default: op
+    pr.ratings:
         description: Displays Recieved Ratings Of Open Application
         default: op
     pr approval:
