@@ -31,7 +31,7 @@ public class DataSet implements DataManager {
 		result.next();
 		this.name = result.getString("Name");
 		this.rank = result.getString("rank");
-		this.plotloc = null; //Lib.getLoc(result.getString("plotloc")); //TODO: IMPLEMENT PLOT LOCATIONS
+		this.plotloc = Lib.getLoc(result.getString("plotloc"));
 		this.totalratings = Integer.parseInt(result.getString("totalratings"));
 		this.ratings = Lib.ratingListCreator(result.getString("ratinglist"));
 		
