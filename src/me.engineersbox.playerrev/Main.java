@@ -9,6 +9,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.intellectualcrafters.plot.api.PlotAPI;
+
 import org.bukkit.entity.Player;
 
 import me.engineersbox.playerrev.InvConfig;
@@ -30,6 +33,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static boolean UseSQL;
 	public static MySQL MySQL;
 	static Connection c = null;
+	public static PlotAPI plotapi;
 	
     public void onEnable() {
     	
@@ -39,6 +43,15 @@ public class Main extends JavaPlugin implements Listener {
     	
     	new InvConfig(this);
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
+    	/*
+    	PluginManager manager = Bukkit.getServer().getPluginManager();
+    	final Plugin plotsquared = manager.getPlugin("PlotSquared");
+    	if(plotsquared != null && !plotsquared.isEnabled()) {
+            Bukkit.getLogger().log(null, "&c[ExamplePlugin] Could not find PlotSquared! Disabling plugin...");
+            manager.disablePlugin(this);
+            return;
+        }
+        */
     	UseSQL = SQLConfig.SQLEnabled();
     	if (UseSQL == true) {
     		MySQL = new MySQL(SQLConfig.getHOSTNAME(), "", SQLConfig.getDATABASE(), SQLConfig.getUSER(), SQLConfig.getPASS());
@@ -49,11 +62,14 @@ public class Main extends JavaPlugin implements Listener {
     		}
     	}
     	
+    	//plotapi = new PlotAPI();
+    	
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
         getCommand("pr apply").setExecutor(new Commands());
         getCommand("pr validranks").setExecutor(new Commands());
         getCommand("pr rate").setExecutor(new Commands());
+        getCommand("pr gotoplot").setExecutor(new Commands());
         getCommand("pr ratings").setExecutor(new Commands());
         getCommand("pr approval").setExecutor(new Commands());
         getCommand("pr removeapplication").setExecutor(new Commands());
