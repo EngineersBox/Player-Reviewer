@@ -120,5 +120,9 @@ public class Lib {
 		Location retloc = new Location(world, xpos, ypos, zpos);
 		return retloc;
 	}
+	
+	public static String capFirstLetter(String value) {
+		return value.toLowerCase().substring(0, 1).toUpperCase() + value.toLowerCase().substring(1);
+	}
 
 }
