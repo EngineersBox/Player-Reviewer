@@ -126,11 +126,10 @@ public class Commands implements CommandExecutor {
         		    		String normname = null;
         		    		if (re.toString().contains("_")) {
         		    			split = re.toString().split("_");
-        		    			normname = split[0].toLowerCase().substring(0, 1).toUpperCase() + split[0].toLowerCase().substring(1);
-        		    			normname += " " + split[1].toLowerCase().substring(0, 1).toUpperCase() + split[1].toLowerCase().substring(1);
+        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
         		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
         		    		} else {
-        		    			normname = re.toString().toLowerCase().substring(0, 1).toUpperCase() + re.toString().toLowerCase().substring(1);
+        		    			normname = Lib.capFirstLetter(re.toString());
         		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
         		    		}
         		    		
