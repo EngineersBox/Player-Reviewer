@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.intellectualcrafters.plot.api.PlotAPI;
@@ -43,15 +45,15 @@ public class Main extends JavaPlugin implements Listener {
     	
     	new InvConfig(this);
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
-    	/*
     	PluginManager manager = Bukkit.getServer().getPluginManager();
     	final Plugin plotsquared = manager.getPlugin("PlotSquared");
     	if(plotsquared != null && !plotsquared.isEnabled()) {
-            Bukkit.getLogger().log(null, "&c[ExamplePlugin] Could not find PlotSquared! Disabling plugin...");
+            Bukkit.getLogger().log(null, "[PlayerReviewer] Could not find PlotSquared! Disabling plugin...");
             manager.disablePlugin(this);
             return;
+        } else {
+        	Bukkit.getLogger().info("[PlayerReviewer] Found plugin PlotSquared! Plot locations enabled");
         }
-        */
     	UseSQL = SQLConfig.SQLEnabled();
     	if (UseSQL == true) {
     		MySQL = new MySQL(SQLConfig.getHOSTNAME(), "", SQLConfig.getDATABASE(), SQLConfig.getUSER(), SQLConfig.getPASS());
