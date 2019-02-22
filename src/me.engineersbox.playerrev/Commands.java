@@ -19,11 +19,9 @@ import me.engineersbox.playerrev.mysql.SQLLink;
 public class Commands implements CommandExecutor {
 	
 	public enum RankEnum {
-		DEFAULT("DEFAULT"),
 		BUILDER("BUILDER"),
-		SQUIRE("SQUIRE"),
-		MOD("MOD", "MODERATOR"),
-		ADMIN("ADMIN", "ADMIN", "ADMINISTRATOR");
+		HEAD_BUILDER("HEAD_BUILDER"),
+		SENIOR_BUILDER("SENIOR_BUILDER");
 		
 	    private String[] aliases;
 
@@ -124,7 +122,18 @@ public class Commands implements CommandExecutor {
 						
 						Main.InfoHeader(p, "Player Reviewer Valid Ranks");
         		    	for (RankEnum re : RankEnum.values()) {
-        		    		p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + re);
+        		    		String[] split;
+        		    		String normname = null;
+        		    		if (re.toString().contains("_")) {
+        		    			split = re.toString().split("_");
+        		    			normname = split[0].toLowerCase().substring(0, 1).toUpperCase() + split[0].toLowerCase().substring(1);
+        		    			normname += " " + split[1].toLowerCase().substring(0, 1).toUpperCase() + split[1].toLowerCase().substring(1);
+        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
+        		    		} else {
+        		    			normname = re.toString().toLowerCase().substring(0, 1).toUpperCase() + re.toString().toLowerCase().substring(1);
+        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
+        		    		}
+        		    		
         		    	}
         		    	Main.InfoHeader(p, "Player Reviewer Valid Ranks");
         		    	return true;
