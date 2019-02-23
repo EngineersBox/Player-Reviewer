@@ -7,6 +7,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import MethodLib.FieldValueException;
 import MethodLib.Lib;
 import me.engineersbox.playerrev.Main;
 
@@ -18,7 +19,7 @@ public class InvConfig extends AbstractFile {
        
     }
     
-    public static void newApp(Player p, String pname, String rank) throws ArrayStoreException {
+    public static void newApp(Player p, String pname, String rank) throws FieldValueException {
     	if (!config.contains(pname)) {
 	    	List<String> raters = new ArrayList<String>();
 	    	
@@ -34,23 +35,23 @@ public class InvConfig extends AbstractFile {
 	    	config.set(pname + ".Raters", raters);
 	        saveConfig();
     	} else {
-    		throw new ArrayStoreException();
+    		throw new FieldValueException(pname);
     	}
 	        
     }
     
-    public static void removeApp(String pname) throws ArrayStoreException {
+    public static void removeApp(String pname) throws FieldValueException {
     	
     	if (config.getList(pname) != null) {
 			config.set(pname, null);
 			saveConfig();
     	} else {
-    		throw new ArrayStoreException();
+    		throw new FieldValueException(pname);
     	}
     	
     }
     
-    public static void ratePlayer(String prater, String pname, Integer atmosphere, Integer originality, Integer terrain, Integer structure, Integer layout) throws ArrayStoreException {
+    public static void ratePlayer(String prater, String pname, Integer atmosphere, Integer originality, Integer terrain, Integer structure, Integer layout) throws FieldValueException {
     	
     	if (config.getList(pname) != null) {
     		
@@ -67,7 +68,7 @@ public class InvConfig extends AbstractFile {
 			try {
 				valuelist = Lib.valueListCreator(raters);
 			} catch (SQLException e) {
-				throw new ArrayStoreException();
+				throw new FieldValueException(pname);
 			}
         	
         	config.set(pname + ".Atmosphere", Float.toString((valuelist.get(0) + atmosphere) / cTotalRatings) + "-" + AtCount);
@@ -88,13 +89,13 @@ public class InvConfig extends AbstractFile {
     		
     	} else {
     		
-    		throw new ArrayStoreException();
+    		throw new FieldValueException(pname);
     		
     	}
     	
     }
     
-    public static ArrayList<List<String>> getRatings(String pname) throws ArrayStoreException {
+    public static ArrayList<List<String>> getRatings(String pname) throws FieldValueException {
     	
     	if (config.getList(pname) != null) {
     		
@@ -125,27 +126,27 @@ public class InvConfig extends AbstractFile {
         	return retval;
     		
     	} else {
-    		throw new ArrayStoreException();
+    		throw new FieldValueException(pname);
     	}
     	
     }
     
-    public static Location getPlotLocation(String pname) throws ArrayStoreException {
+    public static Location getPlotLocation(String pname) throws FieldValueException {
     	
     	if (config.getList(pname) != null) {
     		return Lib.getLoc(config.getString(pname + ".PlotLoc"));
     	} else {
-    		throw new ArrayStoreException();
+    		throw new FieldValueException(pname);
     	}
     	
     }
     
-    public static String getAppRank(String pname) throws ArrayStoreException {
+    public static String getAppRank(String pname) throws FieldValueException {
     	
     	if (config.getList(pname) != null) {
 	    	return config.getString(pname + ".Rank");
     	} else {
-    		throw new ArrayStoreException();
+    		throw new FieldValueException(pname);
     	}
     	
     }
