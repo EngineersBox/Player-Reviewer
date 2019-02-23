@@ -13,12 +13,17 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import MethodLib.FieldValueException;
 import MethodLib.Lib;
 import me.engineersbox.playerrev.mysql.SQLLink;
 
 public class Commands implements CommandExecutor {
 	
 	public enum RankEnum {
+		GUEST("GUEST"),
+		SQUIRE("SQUIRE"),
+		KNIGHT("KNIGHT"),
+		BARON("BARON"),
 		BUILDER("BUILDER"),
 		HEAD_BUILDER("HEAD_BUILDER"),
 		SENIOR_BUILDER("SENIOR_BUILDER");
@@ -86,7 +91,7 @@ public class Commands implements CommandExecutor {
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
 									
-								} catch (SQLException | ArrayStoreException e) {
+								} catch (SQLException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
 								}
 								
@@ -161,7 +166,7 @@ public class Commands implements CommandExecutor {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
 								successFlag = false;
 								
-							} catch (SQLException | ArrayStoreException se) {
+							} catch (SQLException | FieldValueException se) {
 								
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does not Exist!");
 								Bukkit.getLogger().warning(se.getMessage());
@@ -195,7 +200,7 @@ public class Commands implements CommandExecutor {
 								p.teleport(InvConfig.getPlotLocation(args[1]));
 							}
 							
-						} catch (SQLException | ArrayStoreException se) {
+						} catch (SQLException | FieldValueException se) {
 							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application Does Not Exist!");
 						}
 						
@@ -244,7 +249,7 @@ public class Commands implements CommandExecutor {
 								
 								return true;
 								
-							} catch (SQLException | ArrayStoreException e) {
+							} catch (SQLException | FieldValueException e) {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does Not Exist!");
 							}
 							
@@ -307,7 +312,7 @@ public class Commands implements CommandExecutor {
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 								 }
 								
-							} catch (SQLException | ArrayStoreException e) {
+							} catch (SQLException | FieldValueException e) {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + "Does Not Exist!");
 							}
 							
