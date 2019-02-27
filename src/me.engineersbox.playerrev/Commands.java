@@ -13,8 +13,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import MethodLib.FieldValueException;
-import MethodLib.Lib;
+import me.engineersbox.playerrev.exceptions.FieldValueException;
+import me.engineersbox.playerrev.exceptions.InvalidGroupException;
+import me.engineersbox.playerrev.methodlib.GroupPlugins;
+import me.engineersbox.playerrev.methodlib.Lib;
 import me.engineersbox.playerrev.mysql.SQLLink;
 
 public class Commands implements CommandExecutor {
@@ -169,7 +171,6 @@ public class Commands implements CommandExecutor {
 							} catch (SQLException | FieldValueException se) {
 								
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does not Exist!");
-								Bukkit.getLogger().warning(se.getMessage());
 								successFlag = false;
 								
 							}
@@ -268,16 +269,31 @@ public class Commands implements CommandExecutor {
 							try {
 
 								if (args[2].equalsIgnoreCase("approve")) {
-									//TODO: Remove application and approve rank (hook into rank plugin)
 									if (Main.UseSQL == true) {
-										//String rank = SQLLink.getAppRank(args[1]);
+										String rank = SQLLink.getAppRank(args[1]);
+										if (Main.rankPlugin.equalsIgnoreCase("pex")) {
+											GroupPlugins.pexAssignGroup(p, rank);
+										} else if (Main.rankPlugin.equalsIgnoreCase("lp")) {
+											GroupPlugins.lpAssignGroup(p, rank);
+										}
+										SQLLink.removeApp(args[1]);
 									} else {
-										//String rank = InvConfig.getAppRank(args[1]);
+										String rank = InvConfig.getAppRank(args[1]);
+										if (Main.rankPlugin.equalsIgnoreCase("pex")) {
+											GroupPlugins.pexAssignGroup(p, rank);
+										} else if (Main.rankPlugin.equalsIgnoreCase("lp")) {
+											GroupPlugins.lpAssignGroup(p, rank);
+										}
+										InvConfig.removeApp(args[1]);
 									}
 									
 								} else if (args[2].equalsIgnoreCase("deny")) {
 									
-									SQLLink.removeApp(args[1]);
+									if (Main.UseSQL == true) {
+										SQLLink.removeApp(args[1]);
+									} else {
+										InvConfig.removeApp(args[1]);
+									}
 									//TODO: Send message of application denial to player
 									
 								} else {
@@ -287,8 +303,10 @@ public class Commands implements CommandExecutor {
 									
 								}
 								
-							} catch (SQLException e) {
+							} catch (SQLException | FieldValueException e) {
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
+							} catch (InvalidGroupException e) {
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank In Application!");
 							}
 							
 						} else {
