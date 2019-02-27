@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.intellectualcrafters.plot.api.PlotAPI;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import me.engineersbox.playerrev.InvConfig;
 import me.engineersbox.playerrev.mysql.MySQL;
 import me.engineersbox.playerrev.mysql.SQLConfig;
+import me.lucko.luckperms.api.LuckPermsApi;
 
 public class Main extends JavaPlugin implements Listener {
 	
@@ -36,12 +38,27 @@ public class Main extends JavaPlugin implements Listener {
 	public static MySQL MySQL;
 	static Connection c = null;
 	public static PlotAPI plotapi;
+	public static LuckPermsApi LPapi;
+	
+	public static String rankPlugin;
 	
     public void onEnable() {
     	
     	if (!getDataFolder().exists()) {
     		getDataFolder().mkdirs();
     	}
+    	
+    	RegisteredServiceProvider<LuckPermsApi> provider = Bukkit.getServicesManager().getRegistration(LuckPermsApi.class);
+		if (provider != null) {
+		    LPapi = provider.getProvider();
+		    
+		}
+		
+		if (Bukkit.getPluginManager().getPlugin("PermissionsEx") != null) {
+			rankPlugin = "pex";
+		} else if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
+			rankPlugin = "lp";
+		}
     	
     	new InvConfig(this);
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
@@ -53,6 +70,7 @@ public class Main extends JavaPlugin implements Listener {
             return;
         } else {
         	Bukkit.getLogger().info("[PlayerReviewer] Found plugin PlotSquared! Plot locations enabled");
+        	plotapi = new PlotAPI();
         }
     	UseSQL = SQLConfig.SQLEnabled();
     	if (UseSQL == true) {
@@ -63,8 +81,6 @@ public class Main extends JavaPlugin implements Listener {
     			e.printStackTrace();
     		}
     	}
-    	
-    	//plotapi = new PlotAPI();
     	
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
