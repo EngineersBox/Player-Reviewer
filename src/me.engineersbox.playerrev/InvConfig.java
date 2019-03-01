@@ -7,9 +7,9 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import MethodLib.FieldValueException;
-import MethodLib.Lib;
 import me.engineersbox.playerrev.Main;
+import me.engineersbox.playerrev.exceptions.FieldValueException;
+import me.engineersbox.playerrev.methodlib.Lib;
 
 public class InvConfig extends AbstractFile {
 
@@ -106,7 +106,6 @@ public class InvConfig extends AbstractFile {
         	String cTerrain = config.getString(pname + ".Terrain").substring(0, config.getString(pname + ".Terrain").lastIndexOf("-"));
         	String cStructure = config.getString(pname + ".Structure").substring(0, config.getString(pname + ".Structure").lastIndexOf("-"));
         	String cLayout = config.getString(pname + ".Layout").substring(0, config.getString(pname + ".Layout").lastIndexOf("-"));
-        	String cTotalRatings = config.getString(pname + ".TotalRatings");
         	String rank = config.getString(pname + ".Rank");
         	
         	List<String> averages = new ArrayList<String>();
@@ -116,7 +115,6 @@ public class InvConfig extends AbstractFile {
         	averages.add(cTerrain + " ");
         	averages.add(cStructure + " ");
         	averages.add(cLayout + " ");
-        	averages.add(cTotalRatings);
         	averages.add(rank);
         	
         	ArrayList<List<String>> retval = new ArrayList<List<String>>();
