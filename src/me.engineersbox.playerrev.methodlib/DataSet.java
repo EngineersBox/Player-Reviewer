@@ -36,11 +36,12 @@ public class DataSet implements DataManager {
 		this.ratings = Lib.ratingListCreator(result.getString("ratinglist"));
 		
 		int cStart = result.findColumn("rank") + 1;
-		int cEnd = result.findColumn("totalratings");
+		int cEnd = result.findColumn("plotloc");
 		this.criteria = new ArrayList<Float>();
 		for (int i = cStart ; i < cEnd; i++) {
 			this.criteria.add(result.getFloat(i));
 		}
+		
 	}
 	
 	@Override
