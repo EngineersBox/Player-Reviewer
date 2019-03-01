@@ -215,6 +215,7 @@ public class Commands implements CommandExecutor {
 								if (Main.UseSQL == true) {
 									ArrayList<List<String>> Ratings = SQLLink.getRatingValues(args[1]);
 									String appRank = Ratings.get(0).get(0);
+									float cTotal = 0;
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
@@ -226,12 +227,16 @@ public class Commands implements CommandExecutor {
 									}
 									p.sendMessage("");
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(1) + " " + Ratings.get(0).get(2) + " " + Ratings.get(0).get(3) + " " + Ratings.get(0).get(4) + " " + Ratings.get(0).get(5));
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(6));
+									for (int i = 1; i < 6; i++) {
+										cTotal += Float.parseFloat(Ratings.get(0).get(i));
+									}
+									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Points " + ChatColor.WHITE + ":: " + ChatColor.RED + Float.toString(cTotal) + "/500");
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank.substring(0, 1).toUpperCase() + appRank.substring(1));
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
 								} else {
 									ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
-									String appRank = Ratings.get(1).get(4);
+									String appRank = Ratings.get(1).get(5);
+									float cTotal = 0;
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
@@ -243,7 +248,10 @@ public class Commands implements CommandExecutor {
 									}
 									p.sendMessage("");
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + " " + Ratings.get(1).get(1) + " " + Ratings.get(1).get(2) + " " + Ratings.get(1).get(3) + " " + Ratings.get(1).get(4));
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Ratings " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(3));
+									for (int i = 0; i < 5; i++) {
+										cTotal += Float.parseFloat(Ratings.get(1).get(i));
+									}
+									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Points " + ChatColor.WHITE + ":: " + ChatColor.RED + Float.toString(cTotal) + "/500");
 									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank);
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
 								}
