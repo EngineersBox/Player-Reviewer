@@ -34,6 +34,7 @@ public abstract class Database {
 	public boolean closeConnection() throws SQLException {
 		Bukkit.getLogger().info("[PlayerReviewer] Closing Connection With Database...");
 		if (connection == null) {
+			Bukkit.getLogger().info("[PlayerReviewer] No Open Connection, Skipping.");
 			return false;
 		}
 		connection.close();
