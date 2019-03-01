@@ -7,9 +7,9 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import MethodLib.DataSet;
-import MethodLib.Lib;
 import me.engineersbox.playerrev.Main;
+import me.engineersbox.playerrev.methodlib.DataSet;
+import me.engineersbox.playerrev.methodlib.Lib;
 
 public class SQLLink {
 	
@@ -50,7 +50,6 @@ public class SQLLink {
 			DataSet retdata = new DataSet(rs);
 			ratinglist.add(retdata.getRank());
 			ratinglist.addAll(retdata.getCriteriaString());
-			ratinglist.add(Integer.toString(retdata.getTotalRatings()));
 			retval.add(ratinglist);
 			retval.add(retdata.getRatings());
 			
@@ -107,6 +106,7 @@ public class SQLLink {
 			
 			totalratings = retdata.getTotalRatings() + 1;
 			ratinglist = retdata.getRatings();
+			
 			
 			if (ratinglist.size() == 0) {
 				ratingliststring += ":0:" + name + "-" + atmosphere + "-" + originality + "-" + terrain + "-" + structure + "-" + layout;
