@@ -30,7 +30,10 @@ public class AbstractFile {
         config.addDefault("User-Details.PORT", "3306");
         config.addDefault("User-Details.USER", "username");
         config.addDefault("User-Details.PASS", "password");
-        config.options().copyDefaults(true);
+        config.addDefault("Application-Settings.Use-Plot-Locations", true);
+        config.addDefault("Application-Settings.Criteria", "atmosphere,originality,terrain,structure,layout");
+        config.addDefault("Application-Settings.Use-Config-Ranks", true);
+        config.addDefault("Application-Settings.Application-Ranks", "guest[GUEST.guest],squire,knight,baron,builder,head_builder,senior_builder");
         config.options().copyDefaults(true);
         saveConfig();
     }
