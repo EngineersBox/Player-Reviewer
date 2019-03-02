@@ -34,7 +34,6 @@ public class DynamicEnum<K, V extends List<?>> {
 
         } else {
 
-            // compare the keys see if key already exists
             while (existing.next != null) {
                 if (existing.key.equals(key)) {
                     existing.value = value;
