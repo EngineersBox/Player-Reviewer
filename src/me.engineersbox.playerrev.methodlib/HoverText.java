@@ -18,12 +18,14 @@ public class HoverText {
 		
 		ArrayList<Object> components = new ArrayList<>();
 		TextComponent comp = new TextComponent(Lib.format(displayText));
-		TextComponent hoverMessage = new TextComponent("");
+		TextComponent hoverMessage = new TextComponent(Lib.format(hoverContent.get(0)));
 		TextComponent newLine = new TextComponent(ComponentSerializer.parse("{text: \"\n\"}"));
 		
-		for (String content : hoverContent) {
-			hoverMessage.addExtra(newLine);
-			hoverMessage.addExtra(new TextComponent(new ComponentBuilder(Lib.format(content)).create()));
+		if (hoverContent.size() > 1) {
+			for (String content : hoverContent.subList(1, hoverContent.size())) {
+				hoverMessage.addExtra(newLine);
+				hoverMessage.addExtra(new TextComponent(new ComponentBuilder(Lib.format(content)).create()));
+			}
 		}
 		
 		components.add(hoverMessage);
@@ -37,12 +39,14 @@ public class HoverText {
 		
 		ArrayList<Object> components = new ArrayList<>();
 		TextComponent comp = new TextComponent(Lib.format(displayText));
-		TextComponent hoverMessage = new TextComponent("");
+		TextComponent hoverMessage = new TextComponent(Lib.format(hoverContent.get(0)));
 		TextComponent newLine = new TextComponent(ComponentSerializer.parse("{text: \"\n\"}"));
 		
-		for (String content : hoverContent) {
-			hoverMessage.addExtra(newLine);
-			hoverMessage.addExtra(new TextComponent(new ComponentBuilder(Lib.format(content)).create()));
+		if (hoverContent.size() > 1) {
+			for (String content : hoverContent.subList(1, hoverContent.size())) {
+				hoverMessage.addExtra(newLine);
+				hoverMessage.addExtra(new TextComponent(new ComponentBuilder(Lib.format(content)).create()));
+			}
 		}
 		
 		components.add(hoverMessage);
