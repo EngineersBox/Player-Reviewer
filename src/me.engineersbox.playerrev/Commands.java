@@ -84,7 +84,7 @@ public class Commands implements CommandExecutor {
 						
 						if (args.length == 2) {
 							
-							if (RankEnum.isValid(args[1].toUpperCase()) == true) {
+							if ((RankEnum.isValid(args[1].toUpperCase()) == true) && (Main.useConfigRanks == false)) {
 								
 								try {
 									if (Main.UseSQL == true) {
@@ -98,7 +98,22 @@ public class Commands implements CommandExecutor {
 								} catch (SQLException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
 								}
+							
+							} else if ((Main.ranksEnum.isValid(args[1], Arrays.asList(args[1].toUpperCase())) == true) && (Main.useConfigRanks == true)) {
 								
+								try {
+									if (Main.UseSQL == true) {
+										SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+									} else {
+										InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+									}
+									
+								} catch (SQLException | FieldValueException e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+								}
+							
 							} else {
 								
 								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank!");
@@ -117,33 +132,56 @@ public class Commands implements CommandExecutor {
 					} else if((args[0].equalsIgnoreCase("help")) && (p.hasPermission("pr.help"))) {
 						
 						Main.InfoHeader(p, "Player Reviewer");
-						HoverText.HoverMessage(p, "&0> &2/rv validranks", Arrays.asList("&6Description:", "&cDisplays All Ranks That Can Be Applied For"));
-						HoverText.HoverMessage(p, "&0> &2/rv apply <rank>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
-						HoverText.HoverMessage(p, "&0> &2/rv removeapplication <name>", Arrays.asList("&6Description:", "&cRemove An Open Application"));
-						HoverText.HoverMessage(p, "&0> &2/rv approval <player> <approve/deny>", Arrays.asList("&6Description:", "&cApprove Or Deny An Application"));
-						HoverText.HoverMessage(p, "&0> &2/rv ratings <player>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
-						HoverText.HoverMessage(p, "&0> &2/rv rate <player> <atmosphere> <originality> <terrain> &2<structure> <layout>", Arrays.asList("&6Description:", "&cSubmit A Rating To A Player's Open Application"));
-						HoverText.HoverMessage(p, "&0> &2/rv gotoplot <player>", Arrays.asList("&6Description:", "&cTeleports To Player's Open Application Plot"));
+						HoverText.HoverMessage(p, "&0> &2/pr validranks", Arrays.asList("&6Description:", "&cDisplays All Ranks That Can Be Applied For"));
+						HoverText.HoverMessage(p, "&0> &2/pr apply <rank>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+						HoverText.HoverMessage(p, "&0> &2/pr removeapplication <name>", Arrays.asList("&6Description:", "&cRemove An Open Application"));
+						HoverText.HoverMessage(p, "&0> &2/pr approval <player> <approve/deny>", Arrays.asList("&6Description:", "&cApprove Or Deny An Application"));
+						HoverText.HoverMessage(p, "&0> &2/pr ratings <player>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+						HoverText.HoverMessage(p, "&0> &2/pr rate <player> <atmosphere> <originality> <terrain> &2<structure> <layout>", Arrays.asList("&6Description:", "&cSubmit A Rating To A Player's Open Application"));
+						HoverText.HoverMessage(p, "&0> &2/pr gotoplot <player>", Arrays.asList("&6Description:", "&cTeleports To Player's Open Application Plot"));
 						HoverText.HoverMessage(p, "&0> &2/pr version", Arrays.asList("&6Description:", "&cDisplays The Plugin Version And Author"));
-						HoverText.HoverMessage(p, "&0> &2/rv help", Arrays.asList("&6Description:", "&cOpens This Menu"));
+						HoverText.HoverMessage(p, "&0> &2/pr help", Arrays.asList("&6Description:", "&cOpens This Menu"));
 		            	Main.InfoHeader(p, "Player Reviewer");
 						
 					} else if (((args[0].equalsIgnoreCase("validranks")) | (args[0].equalsIgnoreCase("vr")) | (args[0].equalsIgnoreCase("ranks"))) && (p.hasPermission("pr.validranks"))) {
 						
 						Main.InfoHeader(p, "Player Reviewer Valid Ranks");
-        		    	for (RankEnum re : RankEnum.values()) {
-        		    		String[] split;
-        		    		String normname = null;
-        		    		if (re.toString().contains("_")) {
-        		    			split = re.toString().split("_");
-        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
-        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
-        		    		} else {
-        		    			normname = Lib.capFirstLetter(re.toString());
-        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
-        		    		}
-        		    		
-        		    	}
+						if (Main.useConfigRanks == false) {
+							for (RankEnum re : RankEnum.values()) {
+	        		    		String[] split;
+	        		    		String normname = null;
+	        		    		if (re.toString().contains("_")) {
+	        		    			split = re.toString().split("_");
+	        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
+	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
+	        		    		} else {
+	        		    			normname = Lib.capFirstLetter(re.toString());
+	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
+	        		    		}
+	        		    		
+	        		    	}
+						} else {
+							String[] rankSplit = Main.configRankString.split(",");
+							for (String re : rankSplit) {
+								String cString;
+								if ((re.contains("[")) && (re.contains("]"))) {
+									cString = re.substring(0, re.indexOf("["));
+								} else {
+									cString = re;
+								}
+	        		    		String[] split;
+	        		    		String normname = null;
+	        		    		if (cString.contains("_")) {
+	        		    			split = cString.split("_");
+	        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
+	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + cString.toUpperCase());
+	        		    		} else {
+	        		    			normname = Lib.capFirstLetter(cString);
+	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + cString.toUpperCase());
+	        		    		}
+	        		    		
+	        		    	}
+						}
         		    	Main.InfoHeader(p, "Player Reviewer Valid Ranks");
         		    	return true;
         		    	
@@ -297,6 +335,7 @@ public class Commands implements CommandExecutor {
 										}
 										InvConfig.removeApp(args[1]);
 									}
+									//TODO: Send message of application approval to player
 									
 								} else if (args[2].equalsIgnoreCase("deny")) {
 									
