@@ -3,6 +3,7 @@ package me.engineersbox.playerrev;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,11 +14,12 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
+import com.github.intellectualsites.plotsquared.api.PlotAPI;
 
 import org.bukkit.entity.Player;
 
 import me.engineersbox.playerrev.InvConfig;
+import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.mysql.MySQL;
 import me.engineersbox.playerrev.mysql.SQLConfig;
 import me.lucko.luckperms.api.LuckPermsApi;
@@ -34,12 +36,14 @@ public class Main extends JavaPlugin implements Listener {
     	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
     	p.sendMessage("");
 	}
+	public static boolean useConfigRanks;
+	public static String configRankString;
+	public static DynamicEnum<String, List<String>> ranksEnum = new DynamicEnum<String, List<String>>();
 	public static boolean UseSQL;
 	public static MySQL MySQL;
 	static Connection c = null;
 	public static PlotAPI plotapi;
 	public static LuckPermsApi LPapi;
-	
 	public static String rankPlugin;
 	
     public void onEnable() {
@@ -51,7 +55,6 @@ public class Main extends JavaPlugin implements Listener {
     	RegisteredServiceProvider<LuckPermsApi> provider = Bukkit.getServicesManager().getRegistration(LuckPermsApi.class);
 		if (provider != null) {
 		    LPapi = provider.getProvider();
-		    
 		}
 		
 		if (Bukkit.getPluginManager().getPlugin("PermissionsEx") != null) {
@@ -81,6 +84,8 @@ public class Main extends JavaPlugin implements Listener {
     			e.printStackTrace();
     		}
     	}
+    	
+    	SQLConfig.InitRankConfig();
     	
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
