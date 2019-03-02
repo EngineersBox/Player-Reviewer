@@ -2,6 +2,7 @@ package me.engineersbox.playerrev;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import me.engineersbox.playerrev.exceptions.FieldValueException;
 import me.engineersbox.playerrev.exceptions.InvalidGroupException;
 import me.engineersbox.playerrev.methodlib.GroupPlugins;
+import me.engineersbox.playerrev.methodlib.HoverText;
 import me.engineersbox.playerrev.methodlib.Lib;
 import me.engineersbox.playerrev.mysql.SQLLink;
 
@@ -115,14 +117,15 @@ public class Commands implements CommandExecutor {
 					} else if((args[0].equalsIgnoreCase("help")) && (p.hasPermission("pr.help"))) {
 						
 						Main.InfoHeader(p, "Player Reviewer");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv validranks " + ChatColor.WHITE + ":: " + ChatColor.RED + "Displays All Ranks That Can Be Applied For");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv apply <rank> " + ChatColor.WHITE + ":: " + ChatColor.RED + "Submit An Application For A Rank");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv removeapplication <name> " + ChatColor.WHITE + ":: " + ChatColor.RED + "Remove An Open Application");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv approval <player> <approve/deny> " + ChatColor.WHITE + ":: " + ChatColor.RED + "Approve Or Deny An Application");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv ratings <player> " + ChatColor.WHITE + ":: " + ChatColor.RED + "View The Ratings Of A Player's Application");
-						p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv rate <player> <atmosphere> <originality> <skill> " + ChatColor.WHITE + ":: " + ChatColor.RED + "Submit A Rating To A Player's Open Application");
-		            	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr version " + ChatColor.WHITE + ":: " + ChatColor.RED + "Displays The Plugin Version And Author");
-		            	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/rv help " + ChatColor.WHITE + ":: " + ChatColor.RED + "Opens This Menu");
+						HoverText.HoverMessage(p, "&0> &2/rv validranks", Arrays.asList("&6Description:", "&cDisplays All Ranks That Can Be Applied For"));
+						HoverText.HoverMessage(p, "&0> &2/rv apply <rank>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+						HoverText.HoverMessage(p, "&0> &2/rv removeapplication <name>", Arrays.asList("&6Description:", "&cRemove An Open Application"));
+						HoverText.HoverMessage(p, "&0> &2/rv approval <player> <approve/deny>", Arrays.asList("&6Description:", "&cApprove Or Deny An Application"));
+						HoverText.HoverMessage(p, "&0> &2/rv ratings <player>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+						HoverText.HoverMessage(p, "&0> &2/rv rate <player> <atmosphere> <originality> <terrain> &2<structure> <layout>", Arrays.asList("&6Description:", "&cSubmit A Rating To A Player's Open Application"));
+						HoverText.HoverMessage(p, "&0> &2/rv gotoplot <player>", Arrays.asList("&6Description:", "&cTeleports To Player's Open Application Plot"));
+						HoverText.HoverMessage(p, "&0> &2/pr version", Arrays.asList("&6Description:", "&cDisplays The Plugin Version And Author"));
+						HoverText.HoverMessage(p, "&0> &2/rv help", Arrays.asList("&6Description:", "&cOpens This Menu"));
 		            	Main.InfoHeader(p, "Player Reviewer");
 						
 					} else if (((args[0].equalsIgnoreCase("validranks")) | (args[0].equalsIgnoreCase("vr")) | (args[0].equalsIgnoreCase("ranks"))) && (p.hasPermission("pr.validranks"))) {
@@ -186,7 +189,7 @@ public class Commands implements CommandExecutor {
 						} else {
 							
 							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr rate <player> <atmosphere> <originality> <skill>");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <atmosphere> <originality> <terrain> <structure> <layout>");
 							
 						}
 						
