@@ -7,8 +7,11 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+
 import me.engineersbox.playerrev.Main;
 import me.engineersbox.playerrev.exceptions.FieldValueException;
+import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.methodlib.Lib;
 
 public class InvConfig extends AbstractFile {
@@ -19,9 +22,16 @@ public class InvConfig extends AbstractFile {
        
     }
     
-    public static void newApp(Player p, String pname, String rank) throws FieldValueException {
+    public static void newApp(Player p, String pname, String rank) throws FieldValueException, PlotInheritanceException {
     	if (!config.contains(pname)) {
 	    	List<String> raters = new ArrayList<String>();
+	    	String coordsstring = null;
+			PlotPlayer player = PlotPlayer.wrap(p);
+			if (Main.usePlotLoc) {
+				coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+			} else {
+				coordsstring = Lib.getCoordsString(p.getLocation());
+			}
 	    	
 	    	config.set(pname + ".Rank", rank);
 	    	config.set(pname + ".Atmosphere", "0-0");
@@ -29,7 +39,7 @@ public class InvConfig extends AbstractFile {
 	    	config.set(pname + ".Terrain", "0-0");
 	    	config.set(pname + ".Structure", "0-0");
 	    	config.set(pname + ".Layout", "0-0");
-	    	config.set(pname + ".PlotLoc", Lib.getCoordsString(p.getLocation()));
+	    	config.set(pname + ".PlotLoc", coordsstring);
 	    	config.set(pname + ".TotalRatings", "0");
 	    	raters.add("Name-0-0-0-0-0");
 	    	config.set(pname + ".Raters", raters);
