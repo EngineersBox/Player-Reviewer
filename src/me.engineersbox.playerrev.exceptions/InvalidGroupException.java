@@ -7,9 +7,5 @@ public class InvalidGroupException extends Exception {
 	public InvalidGroupException(String field) {
 		super(field);
 	}
-
-	public String toString() {
-		return this.toString();
-	}
 	
 }
