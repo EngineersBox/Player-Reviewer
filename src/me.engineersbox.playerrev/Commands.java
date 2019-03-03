@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 
 import me.engineersbox.playerrev.exceptions.FieldValueException;
 import me.engineersbox.playerrev.exceptions.InvalidGroupException;
+import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.methodlib.GroupPlugins;
 import me.engineersbox.playerrev.methodlib.HoverText;
 import me.engineersbox.playerrev.methodlib.Lib;
@@ -97,6 +98,8 @@ public class Commands implements CommandExecutor {
 									
 								} catch (SQLException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+								} catch (PlotInheritanceException e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
 								}
 							
 							} else if ((Main.ranksEnum.isValid(args[1], Arrays.asList(args[1].toUpperCase())) == true) && (Main.useConfigRanks == true)) {
@@ -112,6 +115,8 @@ public class Commands implements CommandExecutor {
 									
 								} catch (SQLException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+								} catch (PlotInheritanceException e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
 								}
 							
 							} else {
