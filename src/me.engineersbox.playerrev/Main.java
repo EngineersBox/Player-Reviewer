@@ -42,7 +42,8 @@ public class Main extends JavaPlugin implements Listener {
 	public static boolean UseSQL;
 	public static MySQL MySQL;
 	static Connection c = null;
-	public static PlotAPI plotapi;
+	public static PlotAPI plotapi = new PlotAPI();;
+	public static boolean usePlotLoc = false;
 	public static LuckPermsApi LPapi;
 	public static String rankPlugin;
 	
@@ -67,13 +68,12 @@ public class Main extends JavaPlugin implements Listener {
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
     	PluginManager manager = Bukkit.getServer().getPluginManager();
     	final Plugin plotsquared = manager.getPlugin("PlotSquared");
-    	if(plotsquared != null && !plotsquared.isEnabled()) {
-            Bukkit.getLogger().log(null, "[PlayerReviewer] Could not find PlotSquared! Disabling plugin...");
-            manager.disablePlugin(this);
-            return;
+    	if(plotsquared != null && plotsquared.isEnabled()) {
+    		Bukkit.getLogger().info("[PlayerReviewer] Found plugin PlotSquared! Plot locations enabled");
+        	usePlotLoc = SQLConfig.usePlotLoc();
         } else {
-        	Bukkit.getLogger().info("[PlayerReviewer] Found plugin PlotSquared! Plot locations enabled");
-        	plotapi = new PlotAPI();
+        	Bukkit.getLogger().log(null, "[PlayerReviewer] Could not find PlotSquared! Reverting To Player Positions");
+            return;
         }
     	UseSQL = SQLConfig.SQLEnabled();
     	if (UseSQL == true) {
