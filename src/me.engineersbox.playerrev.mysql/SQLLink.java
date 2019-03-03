@@ -4,23 +4,33 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+
 import me.engineersbox.playerrev.Main;
+import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.methodlib.DataSet;
 import me.engineersbox.playerrev.methodlib.Lib;
 
 public class SQLLink {
 	
-	public static void newApp(Player p, String name, String rank) throws SQLException {
+	public static void newApp(Player p, String name, String rank) throws SQLException, PlotInheritanceException {
 		
 		try {
 			
 			String sql;
 			sql = "SELECT Name FROM playerapplications WHERE Name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
-			String coordsstring = Lib.getCoordsString(p.getLocation());
+			String coordsstring = null;
+			PlotPlayer player = PlotPlayer.wrap(p);
+			if (Main.usePlotLoc) {
+				coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+			} else {
+				coordsstring = Lib.getCoordsString(p.getLocation());
+			}
 			
 			if (rs.next()) {
 				throw new SQLException();
@@ -33,6 +43,8 @@ public class SQLLink {
 			
 		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
+		} catch (PlotInheritanceException e) {
+			throw new PlotInheritanceException(e.toString());
 		}
 		
 	}
@@ -84,7 +96,7 @@ public class SQLLink {
 			String sql;
 			sql = "DELETE FROM playerapplications WHERE Name = '" + name + "';";
 			Main.MySQL.noRetUpdate(sql);
-			
+			Bukkit.getLogger().info("test");
 		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
