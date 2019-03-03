@@ -5,12 +5,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+
+import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 
 public class Lib {
 	
@@ -108,14 +114,19 @@ public class Lib {
 	}
 	
 	public static String getCoordsString(Location loc) {
-		String retval = ":w:" + loc.getWorld().toString() + ":x:" + loc.getX() + ":y:" + loc.getY() + ":z:" + loc.getZ();
+		String retval = ":w:" + loc.getWorld().getName().toString() + ":x:" + loc.getX() + ":y:" + loc.getY() + ":z:" + loc.getZ();
+		return retval;
+	}
+	
+	public static String getCoordsString(com.github.intellectualsites.plotsquared.plot.object.Location location) {
+		String retval = ":w:" + location.getWorld().toString() + ":x:" + location.getX() + ":y:" + location.getY() + ":z:" + location.getZ();
 		return retval;
 	}
 	
 	public static Location getLoc(String locstring) {
 		World world = Bukkit.getWorld(StringUtils.substringBetween(locstring, ":w:", ":x:"));
-		Double xpos = Double.parseDouble(StringUtils.substringBetween(locstring, ":x:", "y"));
-		Double ypos = Double.parseDouble(StringUtils.substringBetween(locstring, ":y:", "z"));
+		Double xpos = Double.parseDouble(StringUtils.substringBetween(locstring, ":x:", ":y:"));
+		Double ypos = Double.parseDouble(StringUtils.substringBetween(locstring, ":y:", ":z:"));
 		Double zpos = Double.parseDouble(StringUtils.substringAfter(locstring, ":z:"));
 		Location retloc = new Location(world, xpos, ypos, zpos);
 		return retloc;
@@ -143,5 +154,14 @@ public class Lib {
 		return coloredMsg;
     	
     }
+	
+	public static com.github.intellectualsites.plotsquared.plot.object.Location playerOwnsPlot(PlotPlayer p, Plot plot) throws PlotInheritanceException {
+		Set<Plot> playerPlots = p.getPlots();
+		if (playerPlots.contains(plot)) {
+			return plot.getCenter();
+		} else {
+			throw new PlotInheritanceException(p.getName().toString());
+		}
+	}
 
 }
