@@ -38,7 +38,7 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	public static boolean useConfigRanks;
 	public static String configRankString;
-	public static DynamicEnum<String, List<String>> ranksEnum = new DynamicEnum<String, List<String>>();
+	public static DynamicEnum<String, List<String>> ranksEnum;
 	public static boolean UseSQL;
 	public static MySQL MySQL;
 	static Connection c = null;
