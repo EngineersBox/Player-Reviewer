@@ -64,5 +64,9 @@ public class SQLConfig extends AbstractFile {
     		}
     	}
 	}
+	
+	public static boolean usePlotLoc() {
+		return config.getBoolean("Application-Settings.Use-Plot-Locations");
+	}
 
 }
