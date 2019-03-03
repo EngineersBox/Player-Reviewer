@@ -8,8 +8,4 @@ public class FieldValueException extends Exception {
 		super(field);
 	}
 
-	public String toString() {
-		return this.toString();
-	}
-
 }
