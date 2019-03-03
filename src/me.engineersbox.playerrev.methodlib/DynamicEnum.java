@@ -80,22 +80,17 @@ public class DynamicEnum<K, V extends List<?>> {
     
     public boolean isValid(K key, V val) {
     	
-    	Entry<K, V> bucket = buckets[getHash(key) % getBucketSize()];
-    	List<?> retval = null;
-    	
-    	 while (bucket != null) {
-             if (key == bucket.key) {
-                 retval = bucket.value;
+         int bucket = getHash(key) % getBucketSize();
+         Entry<K, V> existing = buckets[bucket];
+         
+         while (existing.next != null) {
+             if (existing.key.equals(key)) {
+                 existing.value.contains(val);
+                 return true;
              }
-             bucket = bucket.next;
+             existing = existing.next;
          }
-    	 
-    	 if (retval.contains(val)) {
-    		 return true;
-    	 } else {
-    		 return false;
-    	 }
-    	
+         return false;
     }
     
     public String valueOfByAlias(V val) {
