@@ -1,13 +1,14 @@
 package me.engineersbox.playerrev.mysql;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 
 import me.engineersbox.playerrev.AbstractFile;
 import me.engineersbox.playerrev.Main;
+import me.engineersbox.playerrev.methodlib.DynamicEnum;
 
 public class SQLConfig extends AbstractFile {
 
@@ -51,21 +52,16 @@ public class SQLConfig extends AbstractFile {
 		Main.useConfigRanks = config.getBoolean("Application-Settings.Use-Config-Ranks");
     	if (Main.useConfigRanks == true) {
     		Main.configRankString = config.getString("Application-Settings.Application-Ranks");
-    		for (String rankName : Main.configRankString.split(",")) {
-        		if ((rankName.contains("[")) && (rankName.contains("]"))) {
-        			List<String> splitName = new ArrayList<String>(Arrays.asList(rankName.substring(rankName.indexOf("["), rankName.indexOf("]")).split(".")));
-        			for (String nameVal : splitName) {
-        				if (nameVal.equals(rankName.substring(0, rankName.indexOf("]")).toUpperCase())) {
-        					splitName.remove(nameVal);
-        				}
-        			}
-        			splitName.add(rankName.substring(0, rankName.indexOf("]")).toUpperCase());
-        			Main.ranksEnum.put(rankName.substring(0, rankName.indexOf("]")), splitName);
-        		} else {
-        			Main.ranksEnum.put(rankName, Arrays.asList(rankName.toUpperCase()));
-        		}
-        		
-        	}
+    		Main.ranksEnum = new DynamicEnum<String, List<String>>(1);
+    		for (String rankSplit : Main.configRankString.split(",")) {
+    			if (StringUtils.containsAny(rankSplit, "[]")) {
+    				String alias = StringUtils.substringBetween(rankSplit, "[", "]");
+    				String[] aliasList = alias.split(":");
+    				Main.ranksEnum.put(StringUtils.substringBefore(rankSplit, "["), Arrays.asList(aliasList));
+    			} else {
+    				Main.ranksEnum.put(rankSplit, Arrays.asList(rankSplit.toUpperCase()));
+    			}
+    		}
     	}
 	}
 
