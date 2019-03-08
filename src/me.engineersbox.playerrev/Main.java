@@ -42,7 +42,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static boolean UseSQL;
 	public static MySQL MySQL;
 	static Connection c = null;
-	public static PlotAPI plotapi = new PlotAPI();;
+	public static PlotAPI plotapi = new PlotAPI();
 	public static boolean usePlotLoc = false;
 	public static LuckPermsApi LPapi;
 	public static String rankPlugin;
@@ -52,11 +52,14 @@ public class Main extends JavaPlugin implements Listener {
     	if (!getDataFolder().exists()) {
     		getDataFolder().mkdirs();
     	}
-    	
-    	RegisteredServiceProvider<LuckPermsApi> provider = Bukkit.getServicesManager().getRegistration(LuckPermsApi.class);
-		if (provider != null) {
-		    LPapi = provider.getProvider();
-		}
+    	try {
+    		RegisteredServiceProvider<LuckPermsApi> provider = Bukkit.getServicesManager().getRegistration(LuckPermsApi.class);
+			if (provider != null) {
+			    LPapi = provider.getProvider();
+			}
+    	} catch (NoClassDefFoundError e) {
+    		//None
+    	}
 		
 		if (Bukkit.getPluginManager().getPlugin("PermissionsEx") != null) {
 			rankPlugin = "pex";
