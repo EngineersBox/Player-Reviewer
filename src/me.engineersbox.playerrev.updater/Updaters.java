@@ -8,12 +8,10 @@ public class Updaters {
 		
     	Bukkit.getLogger().info("[Player Reviewer] Checking for updates...");
     	try {
-			if (Class.forName("org.spigotmc.SpigotConfig") != null) {
-				if (updater.checkForUpdates()) {
-					Bukkit.getLogger().info("[Player Reviewer] An update was found! New version: " + updater.getLatestVersion() + " Download: " + updater.getResourceURL());
-				}
+			if (updater.checkForUpdates()) {
+				Bukkit.getLogger().info("[Player Reviewer] An update was found! New version: " + updater.getLatestVersion() + " Download: " + updater.getResourceURL());
 			} else {
-				throw new Exception();
+				Bukkit.getLogger().info("[Player Reviewer] Plugin is up to date");
 			}
 		} catch (Exception e) {
 			Bukkit.getLogger().warning("[Player Reviewer] Could not check for updates! Stacktrace:");
