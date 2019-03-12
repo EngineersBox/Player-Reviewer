@@ -155,11 +155,16 @@ public class Commands implements CommandExecutor {
 							
 							try {
 								
+								List<Integer> criteria = new ArrayList<Integer>();
+								for (int i = 2; i < args.length; i++) {
+									criteria.add(Lib.returnInRange(args[i]));
+								}
+								
 								if (Main.UseSQL == true) {
 									SQLLink.ratePlayer(p.getDisplayName(), args[1], Lib.returnInRange(args[2]), Lib.returnInRange(args[3]), Lib.returnInRange(args[4]), Lib.returnInRange(args[5]), Lib.returnInRange(args[6]));
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
 								} else {
-									InvConfig.ratePlayer(p.getDisplayName(), args[1], Lib.returnInRange(args[2]), Lib.returnInRange(args[3]), Lib.returnInRange(args[4]), Lib.returnInRange(args[5]), Lib.returnInRange(args[6]));
+									InvConfig.ratePlayer(p.getDisplayName(), args[1], criteria);
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
 								}
 								successFlag = false;
@@ -188,7 +193,7 @@ public class Commands implements CommandExecutor {
 						} else {
 							
 							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <atmosphere> <originality> <terrain> <structure> <layout>");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <criteria 1> <criteria 2> ...");
 							
 						}
 						
@@ -221,7 +226,7 @@ public class Commands implements CommandExecutor {
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Terrain> <Structure> <Layout>");
+									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
 									p.sendMessage("");
 									for (String ra : Ratings.get(1)) {
 										String[] ratingValues = ra.split("-");
@@ -242,7 +247,7 @@ public class Commands implements CommandExecutor {
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <Atmosphere> <Originality> <Terrain> <Structure> <Layout>");
+									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
 									p.sendMessage("");
 									for (String ra : Ratings.get(0)) {
 										String[] ratingValues = ra.split("-");
