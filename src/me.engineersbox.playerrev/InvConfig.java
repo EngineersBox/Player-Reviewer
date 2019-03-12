@@ -53,7 +53,7 @@ public class InvConfig extends AbstractFile {
     
     public static void removeApp(String pname) throws FieldValueException {
     	
-    	if (config.getList(pname) != null) {
+    	if (config.get(pname) != null) {
 			config.set(pname, null);
 			saveConfig();
     	} else {
@@ -146,7 +146,7 @@ public class InvConfig extends AbstractFile {
     
     public static String getAppRank(String pname) throws FieldValueException {
     	
-    	if (config.getList(pname) != null) {
+    	if (config.get(pname) != null) {
 	    	return config.getString(pname + ".Rank");
     	} else {
     		throw new FieldValueException(pname);
