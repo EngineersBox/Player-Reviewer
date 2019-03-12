@@ -40,10 +40,10 @@ public class SQLConfig extends AbstractFile {
 
 	public static boolean SQLEnabled() {
 		if (config.getBoolean("User-Details.UseSQL") == true) {
-			Bukkit.getLogger().info("[Player Reviewer] SQL Interfacting Enabled");
+			Bukkit.getLogger().info("[PlayerReviewer] SQL Interfacting Enabled");
 			return true;
 		} else {
-			Bukkit.getLogger().info("[Player Reviewer] SQL Interfacting Disabled, Using Local File: " + config.getName());
+			Bukkit.getLogger().info("[PlayerReviewer] SQL Interfacting Disabled, Using Local File: " + config.getName());
 			return false;
 		}
 	}
@@ -67,6 +67,10 @@ public class SQLConfig extends AbstractFile {
 	
 	public static boolean usePlotLoc() {
 		return config.getBoolean("Application-Settings.Use-Plot-Locations");
+	}
+	
+	public static List<String> getCriteria() {
+		return config.getStringList("Application-Settings.Criteria");
 	}
 
 }
