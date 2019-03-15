@@ -1,5 +1,4 @@
 # Player Reviewer
----
 
 ## Features
 This plugin allows users to apply for ranks, which are then rated by users with permissions to do so. The ratings are scored of 0-100 in criteria set within the config (custom criteria is limited to local file config at the moment, this will be updated to support SQL databases soon). An example of possible custom criteria is:
@@ -24,13 +23,13 @@ As it stands, currently the only permissions plugin supported are PermissionsEx 
 ---
 
 ## Commands
-/pr apply <rank> - *Italic*Apply For The Specified Rank
+/pr apply \<rank> - *Italic*Apply For The Specified Rank
 /pr validranks [ALIASES: vr, ranks]- *Italic*Displays All Rank Names On The Server 
-/pr rate <player> <criteria1> <criteria2> … - *Italic*Rate An Open Application With A Rating of 0-100 In Each Criteria
+/pr rate \<player> <criteria1> <criteria2> … - *Italic*Rate An Open Application With A Rating of 0-100 In Each Criteria
 /pr gotoplot [ALIASES: plot] - *Italic*Teleport To Location Or Plot Of Open Application
 /pr ratings - *Italic*View Ratings Of Open Application (Requires Perm pr.ratings To View Other Users Applications)
-/pr approval <approve/deny> - *Italic*Approve Or Deny Open Applications
-/pr removeapplication <name> [ALIASES: ra, remap] - *Italic*Remove An Open Application By Specifying Relevant Player Name
+/pr approval \<approve/deny> - *Italic*Approve Or Deny Open Applications
+/pr removeapplication \<name> [ALIASES: ra, remap] - *Italic*Remove An Open Application By Specifying Relevant Player Name
 /pr version - *Italic*Displays Plugin Version Information
 /pr help - *Italic*Displays Plugin Help Information
 ---
