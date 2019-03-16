@@ -1,4 +1,5 @@
 # Player Reviewer
+<img src="https://media.forgecdn.net/avatars/195/299/636878207268497978.png" width=100px height=100px>
 
 ## Features
 This plugin allows users to apply for ranks, which are then rated by users with permissions to do so. The ratings are scored of 0-100 in criteria set within the config (custom criteria is limited to local file config at the moment, this will be updated to support SQL databases soon). An example of possible custom criteria is:
