@@ -1,4 +1,4 @@
-package me.engineersbox.playerrev;
+package com.engineersbox.playerrev;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,13 +12,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import me.engineersbox.playerrev.exceptions.FieldValueException;
-import me.engineersbox.playerrev.exceptions.InvalidGroupException;
-import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
-import me.engineersbox.playerrev.methodlib.GroupPlugins;
-import me.engineersbox.playerrev.methodlib.HoverText;
-import me.engineersbox.playerrev.methodlib.Lib;
-import me.engineersbox.playerrev.mysql.SQLLink;
+import com.engineersbox.playerrev.exceptions.FieldValueException;
+import com.engineersbox.playerrev.exceptions.InvalidGroupException;
+import com.engineersbox.playerrev.exceptions.PlotInheritanceException;
+import com.engineersbox.playerrev.methodlib.GroupPlugins;
+import com.engineersbox.playerrev.methodlib.HoverText;
+import com.engineersbox.playerrev.methodlib.Lib;
+import com.engineersbox.playerrev.mysql.SQLLink;
 
 public class Commands implements CommandExecutor {
 	
@@ -161,7 +161,9 @@ public class Commands implements CommandExecutor {
 								}
 								
 								if (Main.UseSQL == true) {
-									SQLLink.ratePlayer(p.getDisplayName(), args[1], Lib.returnInRange(args[2]), Lib.returnInRange(args[3]), Lib.returnInRange(args[4]), Lib.returnInRange(args[5]), Lib.returnInRange(args[6]));
+									List<Integer> criteriaValues = new ArrayList<Integer>();
+									criteriaValues.addAll(Arrays.asList(Lib.returnInRange(args[2]), Lib.returnInRange(args[3]), Lib.returnInRange(args[4]), Lib.returnInRange(args[5]), Lib.returnInRange(args[6])));
+									SQLLink.ratePlayer(p.getDisplayName(), args[1], criteriaValues);
 									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
 								} else {
 									InvConfig.ratePlayer(p.getDisplayName(), args[1], criteria);
