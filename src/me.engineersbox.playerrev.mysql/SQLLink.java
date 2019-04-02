@@ -1,19 +1,17 @@
-package me.engineersbox.playerrev.mysql;
+package com.engineersbox.playerrev.mysql;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.engineersbox.playerrev.Main;
+import com.engineersbox.playerrev.exceptions.PlotInheritanceException;
+import com.engineersbox.playerrev.methodlib.DataSet;
+import com.engineersbox.playerrev.methodlib.Lib;
 import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
-
-import me.engineersbox.playerrev.Main;
-import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
-import me.engineersbox.playerrev.methodlib.DataSet;
-import me.engineersbox.playerrev.methodlib.Lib;
 
 public class SQLLink {
 	
@@ -26,17 +24,26 @@ public class SQLLink {
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			String coordsstring = null;
 			PlotPlayer player = PlotPlayer.wrap(p);
-			if (Main.usePlotLoc) {
-				coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
-			} else {
-				coordsstring = Lib.getCoordsString(p.getLocation());
-			}
 			
 			if (rs.next()) {
 				throw new SQLException();
 			} else {
 				
-				sql = "INSERT INTO playerapplications (Name, rank, atmosphere, originality, terrain, structure, layout, plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', '0', '0', '0', '0', '0', '" + coordsstring + "', '0', '');";
+				if (Main.usePlotLoc) {
+					coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+				} else {
+					coordsstring = Lib.getCoordsString(p.getLocation());
+				}
+				
+				List<String> criteriaList = SQLConfig.getCriteria();
+				String criteriaString = "";
+				String criteriaValueString = "";
+				for (String criteria : criteriaList) {
+					criteriaString += criteria + ", ";
+					criteriaValueString += "'0', ";
+				}
+				
+				sql = "INSERT INTO playerapplications (Name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
 				Main.MySQL.noRetUpdate(sql);
 				
 			}
@@ -96,14 +103,13 @@ public class SQLLink {
 			String sql;
 			sql = "DELETE FROM playerapplications WHERE Name = '" + name + "';";
 			Main.MySQL.noRetUpdate(sql);
-			Bukkit.getLogger().info("test");
 		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
 		
 	}
 	
-	public static void ratePlayer(String rater, String name, Integer atmosphere, Integer originality, Integer terrain, Integer structure, Integer layout) throws SQLException {
+	public static void ratePlayer(String rater, String name, List<Integer> criteria) throws SQLException {
 		
 		int totalratings = 0;
 		String ratingliststring = "";
@@ -118,25 +124,42 @@ public class SQLLink {
 			
 			totalratings = retdata.getTotalRatings() + 1;
 			ratinglist = retdata.getRatings();
+			int cIndex = 0;
+			List<Float> updatedCriteria = new ArrayList<Float>();
+			for (Integer cCriteria : criteria) {
+				updatedCriteria.add((retdata.getCriteria().get(cIndex) + cCriteria) / totalratings);
+				cIndex += 1;
+				if (ratinglist.size() == 0) {
+					if (cIndex == 0) {
+        					ratingliststring += ":0:" + cCriteria;
+		    			} else {
+		    				ratingliststring += "-" + cCriteria;
+		    			}
+				}
+			}
 			
-			
-			if (ratinglist.size() == 0) {
-				ratingliststring += ":0:" + name + "-" + atmosphere + "-" + originality + "-" + terrain + "-" + structure + "-" + layout;
-			} else {
-	        	int count = 0;
+			int count = 0;
 	        	for (String cRater : ratinglist) {
 	        		ratingliststring += ":" + count + ":" + cRater;
 	        		count += 1;
+	        		ratingliststring += ":" + count + ":";
+	        		for (Integer cCriteria : criteria) {
+	        			if (count == 0) {
+	        				ratingliststring += cCriteria;
+	        			} else {
+	        				ratingliststring += "-" + cCriteria;
+	        			}
+	        		}
 	        	}
-	        	ratingliststring += ":" + count + ":" + name + "-" + atmosphere + "-" + originality + "-" + terrain + "-" + structure + "-" + layout;
-			}
 			
-        	float upAt = (retdata.getCriteria().get(0) + atmosphere) / totalratings;
-        	float upOr = (retdata.getCriteria().get(1) + originality) / totalratings;
-        	float upTr = (retdata.getCriteria().get(2) + terrain) / totalratings;
-        	float upSt = (retdata.getCriteria().get(3) + structure) / totalratings;
-        	float upLa = (retdata.getCriteria().get(4) + layout) / totalratings;
-        	sql = "UPDATE playerapplications SET atmosphere='" + upAt + "',originality='" + upOr + "',terrain='" + upTr + "',structure='" + upSt + "',layout='" + upLa + "',totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';";
+			List<String> criteriaList = SQLConfig.getCriteria();
+			String criteriaString = "";
+			cIndex = 0;
+			for (String cCriteria : criteriaList) {
+				criteriaString += cCriteria + "='" + updatedCriteria.get(cIndex) + "',";
+				cIndex += 1;
+			}
+        	sql = "UPDATE playerapplications SET" + criteriaString + "totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';";
         	Main.MySQL.noRetUpdate(sql);
 
 		} catch (SQLException | ClassNotFoundException se) {
