@@ -1,4 +1,4 @@
-package com.engineersbox.playerrev.mysql;
+package me.engineersbox.playerrev.mysql;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -7,10 +7,10 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.engineersbox.playerrev.Main;
-import com.engineersbox.playerrev.exceptions.PlotInheritanceException;
-import com.engineersbox.playerrev.methodlib.DataSet;
-import com.engineersbox.playerrev.methodlib.Lib;
+import me.engineersbox.playerrev.Main;
+import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
+import me.engineersbox.playerrev.methodlib.DataSet;
+import me.engineersbox.playerrev.methodlib.Lib;
 import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 
 public class SQLLink {
@@ -67,6 +67,7 @@ public class SQLLink {
 			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
+			
 			ratinglist.add(retdata.getRank());
 			ratinglist.addAll(retdata.getCriteriaString());
 			retval.add(ratinglist);
@@ -103,6 +104,7 @@ public class SQLLink {
 			String sql;
 			sql = "DELETE FROM playerapplications WHERE Name = '" + name + "';";
 			Main.MySQL.noRetUpdate(sql);
+			
 		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
 		}
@@ -111,13 +113,13 @@ public class SQLLink {
 	
 	public static void ratePlayer(String rater, String name, List<Integer> criteria) throws SQLException {
 		
-		int totalratings = 0;
-		String ratingliststring = "";
-		List<String> ratinglist = new ArrayList<String>();
-		
 		try {
 			
+			int totalratings = 0;
+			String ratingliststring = "";
+			List<String> ratinglist = new ArrayList<String>();
 			String sql;
+			
 			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
@@ -126,6 +128,7 @@ public class SQLLink {
 			ratinglist = retdata.getRatings();
 			int cIndex = 0;
 			List<Float> updatedCriteria = new ArrayList<Float>();
+			
 			for (Integer cCriteria : criteria) {
 				updatedCriteria.add((retdata.getCriteria().get(cIndex) + cCriteria) / totalratings);
 				cIndex += 1;
@@ -139,27 +142,28 @@ public class SQLLink {
 			}
 			
 			int count = 0;
-	        	for (String cRater : ratinglist) {
-	        		ratingliststring += ":" + count + ":" + cRater;
-	        		count += 1;
-	        		ratingliststring += ":" + count + ":";
-	        		for (Integer cCriteria : criteria) {
-	        			if (count == 0) {
-	        				ratingliststring += cCriteria;
-	        			} else {
-	        				ratingliststring += "-" + cCriteria;
-	        			}
-	        		}
-	        	}
+        	for (String cRater : ratinglist) {
+        		ratingliststring += ":" + count + ":" + cRater;
+        		count += 1;
+        		ratingliststring += ":" + count + ":";
+        		for (Integer cCriteria : criteria) {
+        			if (count == 0) {
+        				ratingliststring += cCriteria;
+        			} else {
+        				ratingliststring += "-" + cCriteria;
+        			}
+        		}
+        	}
 			
 			List<String> criteriaList = SQLConfig.getCriteria();
 			String criteriaString = "";
 			cIndex = 0;
+			
 			for (String cCriteria : criteriaList) {
 				criteriaString += cCriteria + "='" + updatedCriteria.get(cIndex) + "',";
 				cIndex += 1;
 			}
-        	sql = "UPDATE playerapplications SET" + criteriaString + "totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';";
+        	sql = "UPDATE playerapplications SET " + criteriaString + "totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';";
         	Main.MySQL.noRetUpdate(sql);
 
 		} catch (SQLException | ClassNotFoundException se) {
@@ -170,10 +174,9 @@ public class SQLLink {
 	
 	public static String getAppRank(String name) throws SQLException {
 		
-		String rank;
-		
 		try {
 			
+			String rank;
 			String sql;
 			sql = "SELECT rank FROM playerapplications WHERE Name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
