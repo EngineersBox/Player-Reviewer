@@ -20,7 +20,8 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			sql = "SELECT Name FROM playerapplications WHERE Name = '" + name + "';";
+			String tableName = SQLConfig.getTableName();
+			sql = "SELECT name FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			String coordsstring = null;
 			PlotPlayer player = PlotPlayer.wrap(p);
@@ -43,7 +44,7 @@ public class SQLLink {
 					criteriaValueString += "'0', ";
 				}
 				
-				sql = "INSERT INTO playerapplications (Name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
+				sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
 				Main.MySQL.noRetUpdate(sql);
 				
 			}
@@ -64,7 +65,8 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
+			String tableName = SQLConfig.getTableName();
+			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
 			
@@ -86,7 +88,8 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
+			String tableName = SQLConfig.getTableName();
+			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
 			return retdata.getPlotLoc();
@@ -102,7 +105,8 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			sql = "DELETE FROM playerapplications WHERE Name = '" + name + "';";
+			String tableName = SQLConfig.getTableName();
+			sql = "DELETE FROM " + tableName + " WHERE name = '" + name + "';";
 			Main.MySQL.noRetUpdate(sql);
 			
 		} catch (SQLException | ClassNotFoundException se) {
@@ -119,8 +123,9 @@ public class SQLLink {
 			String ratingliststring = "";
 			List<String> ratinglist = new ArrayList<String>();
 			String sql;
+			String tableName = SQLConfig.getTableName();
 			
-			sql = "SELECT * FROM playerapplications WHERE Name = '" + name + "';";
+			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
 			
@@ -131,21 +136,21 @@ public class SQLLink {
 			
 			for (Integer cCriteria : criteria) {
 				updatedCriteria.add((retdata.getCriteria().get(cIndex) + cCriteria) / totalratings);
-				cIndex += 1;
 				if (ratinglist.size() == 0) {
 					if (cIndex == 0) {
-        					ratingliststring += ":0:" + cCriteria;
+        					ratingliststring += ":0:" + rater + "-" + cCriteria;
 		    			} else {
 		    				ratingliststring += "-" + cCriteria;
 		    			}
 				}
+				cIndex += 1;
 			}
 			
 			int count = 0;
         	for (String cRater : ratinglist) {
         		ratingliststring += ":" + count + ":" + cRater;
         		count += 1;
-        		ratingliststring += ":" + count + ":";
+        		ratingliststring += ":" + count + ":" + rater;
         		for (Integer cCriteria : criteria) {
         			if (count == 0) {
         				ratingliststring += cCriteria;
@@ -163,7 +168,7 @@ public class SQLLink {
 				criteriaString += cCriteria + "='" + updatedCriteria.get(cIndex) + "',";
 				cIndex += 1;
 			}
-        	sql = "UPDATE playerapplications SET " + criteriaString + "totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE Name = '" + name + "';";
+        	sql = "UPDATE " + tableName + " SET " + criteriaString + "totalratings='" + totalratings + "',ratinglist='" + ratingliststring + "' WHERE name = '" + name + "';";
         	Main.MySQL.noRetUpdate(sql);
 
 		} catch (SQLException | ClassNotFoundException se) {
@@ -178,7 +183,8 @@ public class SQLLink {
 			
 			String rank;
 			String sql;
-			sql = "SELECT rank FROM playerapplications WHERE Name = '" + name + "';";
+			String tableName = SQLConfig.getTableName();
+			sql = "SELECT rank FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			rs.next();
 			
