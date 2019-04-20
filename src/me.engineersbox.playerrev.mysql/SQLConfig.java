@@ -72,5 +72,9 @@ public class SQLConfig extends AbstractFile {
 	public static List<String> getCriteria() {
 		return config.getStringList("Application-Settings.Criteria");
 	}
+	
+	public static String getTableName() {
+		return config.getString("Application-Settings.SQL-Table");
+	}
 
 }
