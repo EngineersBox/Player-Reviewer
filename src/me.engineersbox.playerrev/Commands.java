@@ -40,15 +40,26 @@ public class Commands implements CommandExecutor {
 					if ((args[0].equalsIgnoreCase("apply")) && (p.hasPermission("pr.apply"))) {
 						
 						if (args.length == 2) {
+							if (!Main.useRanksInApplication) {
+								p.sendMessage(Main.prefix + ChatColor.RED + "Applications for ranks disabled, ranks are decided by staff.");
+							}
 							
 							if ((RankEnum.isValid(args[1].toUpperCase()) == true) && (Main.useConfigRanks == false)) {
 								
 								try {
 									if (Main.UseSQL == true) {
-										SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										if (Main.useRanksInApplication) {
+											SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										} else {
+											SQLLink.newApp(p, p.getDisplayName(), null);
+										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
-										InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										if (Main.useRanksInApplication) {
+											InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										} else {
+											InvConfig.newApp(p, p.getDisplayName(), null);
+										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
 									
@@ -62,10 +73,18 @@ public class Commands implements CommandExecutor {
 								
 								try {
 									if (Main.UseSQL == true) {
-										SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										if (Main.useRanksInApplication) {
+											SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										} else {
+											SQLLink.newApp(p, p.getDisplayName(), null);
+										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
-										InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										if (Main.useRanksInApplication) {
+											InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+										} else {
+											InvConfig.newApp(p, p.getDisplayName(), null);
+										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
 									
@@ -76,9 +95,10 @@ public class Commands implements CommandExecutor {
 								}
 							
 							} else {
-								
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank!");
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
+								if (!Main.useRanksInApplication) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank!");
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
+								}
 								
 							}
 							return true;
