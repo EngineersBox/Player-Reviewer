@@ -22,6 +22,8 @@ import me.engineersbox.playerrev.InvConfig;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.mysql.MySQL;
 import me.engineersbox.playerrev.mysql.SQLConfig;
+import me.engineersbox.playerrev.updater.SpigotUpdater;
+import me.engineersbox.playerrev.updater.Updaters;
 import me.lucko.luckperms.api.LuckPermsApi;
 
 public class Main extends JavaPlugin implements Listener {
@@ -33,16 +35,17 @@ public class Main extends JavaPlugin implements Listener {
 	public static String prefix = ChatColor.RED + "[" + ChatColor.DARK_AQUA + "Player Reviewer" + ChatColor.RED + "] ";
 	public static void InfoHeader(Player p, String info) {
 		p.sendMessage("");
-    	p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+    	p.sendMessage(ChatColor.DARK_GRAY + "----=<{" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
     	p.sendMessage("");
 	}
 	public static boolean useConfigRanks;
+	public static boolean useRanksInApplication;
 	public static String configRankString;
 	public static DynamicEnum<String, List<String>> ranksEnum;
 	public static boolean UseSQL;
 	public static MySQL MySQL;
 	static Connection c = null;
-	public static PlotAPI plotapi = new PlotAPI();
+	public static PlotAPI plotapi;
 	public static boolean usePlotLoc = false;
 	public static LuckPermsApi LPapi;
 	public static String rankPlugin;
@@ -52,13 +55,20 @@ public class Main extends JavaPlugin implements Listener {
     	if (!getDataFolder().exists()) {
     		getDataFolder().mkdirs();
     	}
+    	
     	try {
     		RegisteredServiceProvider<LuckPermsApi> provider = Bukkit.getServicesManager().getRegistration(LuckPermsApi.class);
 			if (provider != null) {
 			    LPapi = provider.getProvider();
 			}
+			
+			RegisteredServiceProvider<PlotAPI> provider2 = Bukkit.getServicesManager().getRegistration(PlotAPI.class);
+			if (provider2 != null) {
+				plotapi = new PlotAPI();
+			}
+			
     	} catch (NoClassDefFoundError e) {
-    		//None
+    		Bukkit.getLogger().warning("[PlayerReviewer] No provider for LuckPermsApi or PlotAPI");
     	}
 		
 		if (Bukkit.getPluginManager().getPlugin("PermissionsEx") != null) {
@@ -66,6 +76,9 @@ public class Main extends JavaPlugin implements Listener {
 		} else if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
 			rankPlugin = "lp";
 		}
+		
+		SpigotUpdater updater = new SpigotUpdater(this, 65535);
+    	Updaters.checkVersion(updater);
     	
     	new InvConfig(this);
     	Bukkit.getServer().getPluginManager().registerEvents(this, this);
