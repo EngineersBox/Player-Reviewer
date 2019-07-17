@@ -36,7 +36,11 @@ public class InvConfig extends AbstractFile {
 			}
 	    	
 			List<String> criteriaList = SQLConfig.getCriteria();
-	    	config.set(pname + ".Rank", rank);
+			if (Main.useRanksInApplication) {
+				config.set(pname + ".Rank", rank);
+			} else {
+				config.set(pname + ".Rank", null);
+			}
 	    	for (String current : criteriaList) {
 	    		config.set(pname + "." + current, "0-0");
 	    	}
@@ -120,7 +124,11 @@ public class InvConfig extends AbstractFile {
         	for (String current : configCriteria) {
         		averages.add(config.getString(pname + "." + current).substring(0, config.getString(pname + "." + current).lastIndexOf("-")));
         	}
-        	averages.add(config.getString(pname + ".Rank"));
+        	if (Main.useRanksInApplication) {
+        		averages.add(config.getString(pname + ".Rank"));
+        	} else {
+        		averages.add("Ranks Disabled");
+        	}
         	
         	ArrayList<List<String>> retval = new ArrayList<List<String>>();
         	retval.add(raters);
@@ -145,11 +153,14 @@ public class InvConfig extends AbstractFile {
     }
     
     public static String getAppRank(String pname) throws FieldValueException {
-    	
-    	if (config.get(pname) != null) {
-	    	return config.getString(pname + ".Rank");
+    	if (Main.useRanksInApplication) {
+    		if (config.get(pname) != null) {
+    	    	return config.getString(pname + ".Rank");
+        	} else {
+        		throw new FieldValueException(pname);
+        	}
     	} else {
-    		throw new FieldValueException(pname);
+    		return "Ranks Disabled";
     	}
     	
     }
