@@ -1,6 +1,6 @@
 name: PlayerReviewer
 main: me.engineersbox.playerrev.Main
-version: 2.2
+version: 2.4
 author: EngineersBox
 description: Review Player Rank Applications
 commands:
