@@ -50,6 +50,7 @@ public class SQLConfig extends AbstractFile {
 	
 	public static void InitRankConfig() {
 		Main.useConfigRanks = config.getBoolean("Application-Settings.Use-Config-Ranks");
+		Main.useRanksInApplication = config.getBoolean("Application-Settings.Use-Ranks-In-Application");
     	if (Main.useConfigRanks == true) {
     		Main.configRankString = config.getString("Application-Settings.Application-Ranks");
     		Main.ranksEnum = new DynamicEnum<String, List<String>>(1);
