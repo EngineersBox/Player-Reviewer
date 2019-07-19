@@ -31,7 +31,11 @@ public class SQLLink {
 			} else {
 				
 				if (Main.usePlotLoc) {
-					coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+					try {
+						coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+					} catch (Exception e) {
+						coordsstring = Lib.getCoordsString(p.getLocation());
+					}
 				} else {
 					coordsstring = Lib.getCoordsString(p.getLocation());
 				}
@@ -43,7 +47,11 @@ public class SQLLink {
 					criteriaString += criteria + ", ";
 					criteriaValueString += "'0', ";
 				}
-				
+				if (Main.useRanksInApplication) {
+					sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
+				} else {
+					sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + null + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
+				}
 				sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
 				Main.MySQL.noRetUpdate(sql);
 				
@@ -51,8 +59,6 @@ public class SQLLink {
 			
 		} catch (SQLException | ClassNotFoundException se) {
 			throw new SQLException(se);
-		} catch (PlotInheritanceException e) {
-			throw new PlotInheritanceException(e.toString());
 		}
 		
 	}
@@ -70,7 +76,11 @@ public class SQLLink {
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
 			
-			ratinglist.add(retdata.getRank());
+			if (Main.useRanksInApplication) {
+				ratinglist.add(retdata.getRank());
+			} else {
+				ratinglist.add("Ranks Disabled");
+			}
 			ratinglist.addAll(retdata.getCriteriaString());
 			retval.add(ratinglist);
 			retval.add(retdata.getRatings());
@@ -179,20 +189,24 @@ public class SQLLink {
 	
 	public static String getAppRank(String name) throws SQLException {
 		
-		try {
-			
-			String rank;
-			String sql;
-			String tableName = SQLConfig.getTableName();
-			sql = "SELECT rank FROM " + tableName + " WHERE name = '" + name + "';";
-			ResultSet rs = Main.MySQL.querySQL(sql);
-			rs.next();
-			
-			rank = rs.getString("rank");
-			return rank;
-			
-		} catch (SQLException | ClassNotFoundException se) {
-			throw new SQLException(se);
+		if (Main.useRanksInApplication) {
+			try {
+				
+				String rank;
+				String sql;
+				String tableName = SQLConfig.getTableName();
+				sql = "SELECT rank FROM " + tableName + " WHERE name = '" + name + "';";
+				ResultSet rs = Main.MySQL.querySQL(sql);
+				rs.next();
+				
+				rank = rs.getString("rank");
+				return rank;
+				
+			} catch (SQLException | ClassNotFoundException se) {
+				throw new SQLException(se);
+			}
+		} else {
+			return "Ranks Disabled";
 		}
 		
 	}
