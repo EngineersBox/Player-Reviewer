@@ -49,16 +49,16 @@ public class Commands implements CommandExecutor {
 								try {
 									if (Main.UseSQL == true) {
 										if (Main.useRanksInApplication) {
-											SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+											SQLLink.newApp(p, p.getName(), args[1].toString().toLowerCase());
 										} else {
-											SQLLink.newApp(p, p.getDisplayName(), null);
+											SQLLink.newApp(p, p.getName(), null);
 										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
 										if (Main.useRanksInApplication) {
-											InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+											InvConfig.newApp(p, p.getName(), args[1].toString().toLowerCase());
 										} else {
-											InvConfig.newApp(p, p.getDisplayName(), null);
+											InvConfig.newApp(p, p.getName(), null);
 										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
@@ -74,16 +74,16 @@ public class Commands implements CommandExecutor {
 								try {
 									if (Main.UseSQL == true) {
 										if (Main.useRanksInApplication) {
-											SQLLink.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+											SQLLink.newApp(p, p.getName(), args[1].toString().toLowerCase());
 										} else {
-											SQLLink.newApp(p, p.getDisplayName(), null);
+											SQLLink.newApp(p, p.getName(), null);
 										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
 										if (Main.useRanksInApplication) {
-											InvConfig.newApp(p, p.getDisplayName(), args[1].toString().toLowerCase());
+											InvConfig.newApp(p, p.getName(), args[1].toString().toLowerCase());
 										} else {
-											InvConfig.newApp(p, p.getDisplayName(), null);
+											InvConfig.newApp(p, p.getName(), null);
 										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
