@@ -82,8 +82,8 @@ public class InvConfig extends AbstractFile {
         	}
         	
         	int cTotalRatings = Integer.parseInt(config.getString(pname + ".TotalRatings")) + 1;
-        	
         	List<Integer> valuelist = new ArrayList<Integer>();
+        	
 			try {
 				valuelist = Lib.valueListCreator(raters);
 			} catch (SQLException e) {
