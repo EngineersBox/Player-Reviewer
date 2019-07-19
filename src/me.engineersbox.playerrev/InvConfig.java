@@ -30,7 +30,11 @@ public class InvConfig extends AbstractFile {
 	    	String coordsstring = null;
 			PlotPlayer player = PlotPlayer.wrap(p);
 			if (Main.usePlotLoc) {
-				coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+				try {
+					coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+				} catch (Exception e) {
+					coordsstring = Lib.getCoordsString(p.getLocation());
+				}
 			} else {
 				coordsstring = Lib.getCoordsString(p.getLocation());
 			}
