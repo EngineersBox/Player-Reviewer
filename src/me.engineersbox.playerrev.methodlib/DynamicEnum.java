@@ -84,7 +84,7 @@ public class DynamicEnum<K, V extends List<?>> {
          Entry<K, V> existing = buckets[bucket];
          
          while (existing.next != null) {
-             if (existing.key.equals(key)) {
+             if (existing.key.toString().equalsIgnoreCase(key.toString())) {
                  existing.value.contains(val);
                  return true;
              }
