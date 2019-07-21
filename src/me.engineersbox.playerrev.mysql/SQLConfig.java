@@ -77,5 +77,9 @@ public class SQLConfig extends AbstractFile {
 	public static String getTableName() {
 		return config.getString("Application-Settings.SQL-Table");
 	}
+	
+	public static int maxCamCount() {
+    	return config.getInt("Application-Settings.Max-Camera-Count");
+    }
 
 }
