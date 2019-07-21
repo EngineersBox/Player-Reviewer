@@ -35,6 +35,7 @@ public class AbstractFile {
         config.addDefault("Application-Settings.Use-Config-Ranks", true);
         config.addDefault("Application-Settings.Use-Ranks-In-Application", true);
         config.addDefault("Application-Settings.Application-Ranks", "guest[GUEST:guest],squire,knight,baron,builder,head_builder,senior_builder");
+        config.addDefault("Application-Settings.Max-Camera-Count", 4);
         config.options().copyDefaults(true);
         saveConfig();
     }
