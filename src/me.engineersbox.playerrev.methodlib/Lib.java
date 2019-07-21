@@ -86,7 +86,7 @@ public class Lib {
 		
 	}
 	
-	public static int returnInRange(String value) throws NumberFormatException {
+	public static Integer returnInRange(String value) throws NumberFormatException {
 		Range<Integer> rangeInt = Range.between(0, 100);
 		try {
 			if (rangeInt.contains(Integer.parseInt(value))) {
@@ -104,6 +104,24 @@ public class Lib {
 		return new Location(world, x, y, z);
 	}
 	
+	public static Location getLocPitchYaw(World world, Double x, Double y, Double z, Float pitch, Float yaw) {
+		Location newLoc = new Location(world, x, y, z);
+		newLoc.setPitch(pitch);
+		newLoc.setYaw(yaw);
+		return newLoc;
+	}
+	
+	public static Map<String, Object> getCoordsPitchYaw(Location loc) {
+		Map<String, Object> retval = new HashMap<>();
+		retval.put("world", loc.getWorld());
+		retval.put("x", loc.getX());
+		retval.put("y", loc.getY());
+		retval.put("z", loc.getZ());
+		retval.put("yaw", loc.getYaw());
+		retval.put("pitch", loc.getPitch());
+		return retval;
+	}
+	
 	public static Map<String, Object> getCoords(Location loc) {
 		Map<String, Object> retval = new HashMap<>();
 		retval.put("world", loc.getWorld());
@@ -118,6 +136,11 @@ public class Lib {
 		return retval;
 	}
 	
+	public static String getCoordsStringPitchYaw(Location loc) {
+		String retval = ":w:" + loc.getWorld().getName().toString() + ":x:" + loc.getX() + ":y:" + loc.getY() + ":z:" + loc.getZ() + ":p:" + loc.getPitch() + ":ya:" + loc.getYaw();
+		return retval;
+	}
+	
 	public static String getCoordsString(com.github.intellectualsites.plotsquared.plot.object.Location location) {
 		String retval = ":w:" + location.getWorld().toString() + ":x:" + location.getX() + ":y:" + location.getY() + ":z:" + location.getZ();
 		return retval;
@@ -128,8 +151,20 @@ public class Lib {
 		Double xpos = Double.parseDouble(StringUtils.substringBetween(locstring, ":x:", ":y:"));
 		Double ypos = Double.parseDouble(StringUtils.substringBetween(locstring, ":y:", ":z:"));
 		Double zpos = Double.parseDouble(StringUtils.substringAfter(locstring, ":z:"));
-		Location retloc = new Location(world, xpos, ypos, zpos);
-		return retloc;
+		return new Location(world, xpos, ypos, zpos);
+	}
+	
+	public static Location getLocPitchYaw(String locstring) {
+		World world = Bukkit.getWorld(StringUtils.substringBetween(locstring, ":w:", ":x:"));
+		Double xpos = Double.parseDouble(StringUtils.substringBetween(locstring, ":x:", ":y:"));
+		Double ypos = Double.parseDouble(StringUtils.substringBetween(locstring, ":y:", ":z:"));
+		Double zpos = Double.parseDouble(StringUtils.substringBetween(locstring, ":z:", ":p:"));
+		Float pitch = Float.parseFloat(StringUtils.substringBetween(locstring, ":p:", ":ya:"));
+		Float yaw = Float.parseFloat(StringUtils.substringAfter(locstring, ":ya:"));
+		Location newLoc = new Location(world, xpos, ypos, zpos);
+		newLoc.setPitch(pitch);
+		newLoc.setYaw(yaw);
+		return newLoc;
 	}
 	
 	public static String capFirstLetter(String value) {
