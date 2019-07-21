@@ -7,12 +7,16 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.google.gson.Gson;
+
 import me.engineersbox.playerrev.exceptions.FieldValueException;
+import me.engineersbox.playerrev.exceptions.HashMapSizeOverflow;
 import me.engineersbox.playerrev.exceptions.InvalidGroupException;
 import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.methodlib.GroupPlugins;
@@ -27,6 +31,7 @@ public class Commands implements CommandExecutor {
 		if (sender instanceof Player) {
 			
 			Player p = (Player) sender;
+			String tHash = p.getUniqueId().toString();
 			
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
 					
@@ -388,6 +393,136 @@ public class Commands implements CommandExecutor {
         		    	p.sendMessage("");
         		    	Main.InfoHeader(p, "Player Reviewer Version Info");
 					
+					} else if ((args[0].equalsIgnoreCase("pos1")) && (p.hasPermission("pr.pos1"))) {
+						
+		                if (Main.positions.get(tHash) != null) {
+		                	
+		                    CoordsObject tpos = Main.positions.get(tHash);
+		                    tpos.setPosition1(p.getLocation());
+		                    Main.positions.put(tHash,tpos);
+		                    
+		                }else {
+		                	
+		                    CoordsObject tpos = new CoordsObject();
+		                    tpos.setPosition1(p.getLocation());
+		                    Main.positions.put(tHash,tpos);
+		                }
+		                
+		                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 1 registered");
+
+		            } else if ((args[0].equalsIgnoreCase("pos2")) && (p.hasPermission("pr.pos2"))) {
+		            	
+		                if (Main.positions.get(tHash) != null) {
+		                	
+		                    CoordsObject tpos = Main.positions.get(tHash);
+		                    tpos.setPosition2(p.getLocation());
+		                    Main.positions.put(tHash, tpos);
+		                    
+		                } else {
+		                	
+		                    CoordsObject tpos = new CoordsObject();
+		                    tpos.setPosition2(p.getLocation());
+		                    Main.positions.put(tHash, tpos);
+		                    
+		                }
+		                
+		                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 2 registered");
+		                
+		            } else if ((args[0].equalsIgnoreCase("cam")) && (p.hasPermission("pr.cam"))) {
+		            	
+		            	if (Main.camCount < Main.cameras.maxSize()) {
+		            		Main.camCount += 1;
+		            		
+		            		if (Main.cameras.get(tHash + "_" + Main.camCount) != null) {
+			                	
+			                    CameraObject cam = Main.cameras.get(tHash + "_" + Main.camCount);
+			                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+			                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+			                    cam.position.setX(p.getLocation().getX());
+			                    cam.position.setY(p.getLocation().getY());
+			                    cam.position.setZ(p.getLocation().getZ());
+			                    
+			                    try {
+									Main.cameras.put(tHash + "_" + Main.camCount, cam);
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + Main.camCount + " registered");
+								} catch (HashMapSizeOverflow e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count: " + Main.camCount + " reached!");
+								}
+			                    
+			                } else {
+			                	
+			                    CameraObject cam = new CameraObject();
+			                    cam.orientation = new orientation();
+			                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+			                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+			                    cam.position = new position();
+			                    cam.position.setX(p.getLocation().getX());
+			                    cam.position.setY(p.getLocation().getY());
+			                    cam.position.setZ(p.getLocation().getZ());
+			                    
+			                    try {
+									Main.cameras.put(tHash + "_" + Main.camCount, cam);
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + Main.camCount + " registered");
+								} catch (HashMapSizeOverflow e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count: " + Main.camCount + " reached!");
+								}
+			                    
+			                }
+			                
+		            	} else {
+		            		p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count " + Main.camCount + " reached!");
+		            	}
+		            	
+		            } else if ((args[0].equalsIgnoreCase("get")) && (p.hasPermission("pr.get"))) {
+		            	
+	            		String pos1 = ChatColor.DARK_RED + "Not registered ";
+	            		String pos2 = ChatColor.DARK_RED + "Not registered ";
+	            		String chunks = ChatColor.DARK_RED + "Not registered ";
+	            		List<String> cams = new ArrayList<String>();
+	            		cams.add(ChatColor.DARK_RED + "Not registered");
+	            		CoordsObject pos = Main.positions.get(tHash);
+	            		
+	            		if (pos != null) {
+	            			if (pos.getPosition1() != null) {
+	            				pos1 = pos.getPosition1().toString();
+	            			}
+	            			
+	            			if (pos.getPosition2() != null) {
+		            			pos2 = pos.getPosition2().toString();
+		            		}
+	            			
+	            			if (getChunks(tHash) != null) {
+		            			chunks = getChunks(tHash).toString();
+		            		}
+	            		}
+	            		
+	            		if (Main.cameras.get(tHash + "_1") != null) {
+	            			cams.clear();
+	            			
+	            			for (int i = 1; i <= Main.cameras.maxSize(); i++) {
+		            			if (Main.cameras.get(tHash + "_" + i) != null) {
+		            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Cam " + i + ":" + ChatColor.GREEN + " Registered");
+		            			} else {
+		            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Cam " + i + ":" + ChatColor.DARK_RED + " Not registered");
+		            			}
+		            		}
+	            		}
+	            		
+            			p.sendMessage(Main.prefix + ChatColor.GOLD + "Pos 1: " + ChatColor.AQUA + pos1);
+		                p.sendMessage(Main.prefix + ChatColor.GOLD + "Pos 2: " + ChatColor.AQUA + pos2);
+		                p.sendMessage(Main.prefix + ChatColor.GOLD + "Chunks: " + ChatColor.AQUA + chunks);
+		                if (cams.size() == 1) {
+		                	p.sendMessage(Main.prefix + ChatColor.GOLD + "Cameras: " + cams.get(0));
+		                } else {
+		                	p.sendMessage(Main.prefix + ChatColor.GOLD + "Cameras:");
+		                	for (String cam : cams) {
+			                	p.sendMessage(cam);
+			                }
+		                }
+		                
+		                Gson gson = new Gson();
+		                gson.toJson(Main.cameras.get(tHash + "_1"));
+        		    	
 					} else {
 						
 						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command!");
@@ -401,11 +536,59 @@ public class Commands implements CommandExecutor {
 				
 			}
 			
-			return false;
+			return true;
 			
 		}
 		
-		return false;
+		return true;
+	
 	}
+	
+	public String getChunks(String tHash) {
+		
+		CoordsObject pos = Main.positions.get(tHash);
+		if ((pos != null) && (pos.getPosition1() != null) && (pos.getPosition2() != null)) {
+			
+			ArrayList<Object> chunkList = new ArrayList<Object>();
+	        Location location1 = Main.positions.get(tHash).getPosition1();
+	        Location location2 = Main.positions.get(tHash).getPosition2();
+	        
+	        int xMin; int xMax;
+	        if(location1.getChunk().getX() > location2.getChunk().getX()) {
+	            xMin = location2.getChunk().getX();
+	            xMax = Main.positions.get(tHash).getPosition1().getChunk().getX();
+	        }else {
+	            xMin = location1.getChunk().getX();
+	            xMax = location2.getChunk().getX();
+	        }
 
+	        int zMin; int zMax;
+	        if(location1.getChunk().getZ() > location2.getChunk().getZ()) {
+	            zMin = location2.getChunk().getZ();
+	            zMax = location1.getChunk().getZ();
+	        }else {
+	            zMin = location1.getChunk().getZ();
+	            zMax = location2.getChunk().getZ();
+	        }
+
+	        for (int x = xMin; x <= xMax; x++) {
+	            for (int z = zMin; z <= zMax; z++) {
+	                // chunk
+	                int[] aChunk = new int[2];
+	                aChunk[0] = x;
+	                aChunk[1] = z;
+	                chunkList.add(aChunk);
+	            }
+	        }
+	        
+	        Gson gson = new Gson();
+	        String jsonStr = gson.toJson(chunkList);
+
+	        return jsonStr;
+		} else {
+			return null;
+		}
+    }
+	
 }
+
