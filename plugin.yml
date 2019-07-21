@@ -1,13 +1,13 @@
 name: PlayerReviewer
 main: me.engineersbox.playerrev.Main
-version: 2.4
+version: 2.5
 author: EngineersBox
 description: Review Player Rank Applications
 commands:
     pr:
         description: Allows The Use Of The pr Command
         usage: /pr
-        permission: bp.use
+        permission: pr.use
     pr help:
         description: Displays All Help Options For Player Reviewer
         usage: /pr help
@@ -47,6 +47,22 @@ commands:
         description: Allows Player To View Plugin Version Information
         usage: /pr version
         permission: pr.version
+    pr pos1:
+        description: Register position 1
+        usage: /pr pos1
+        permission: pr.pos1
+    pr pos2:
+        description: Register position 2
+        usage: /pr pos2
+        permission: pr.pos2
+    pr cam:
+        description: Register a camera
+        usage: /pr cam
+        permission: pr.cam
+    pr get:
+        description: Returns position and chunk details
+        usage: /pr get
+        permission: pr.get
 permissions:
     pr.*:
         description: Gives Access To All Player Reviewer Commands
@@ -61,6 +77,10 @@ permissions:
             pr.approval: true
             pr.removeapplication: true
             pr.version: true
+            pr.pos1: true
+            pr.pos2: true
+            pr.cam: true
+            pr.get: true
     pr.use:
         description: Allows The Use Of The pr Command
         default: true
@@ -82,12 +102,24 @@ permissions:
     pr.ratings:
         description: Displays Recieved Ratings Of Open Application
         default: op
-    pr approval:
+    pr.approval:
         description: Allows Player To Approve Or Deny Open Applications
         default: op
-    pr removeapplication:
+    pr.removeapplication:
         description: Allows Player To Remove Open Application
         default: true
-    pr version:
+    pr.version:
         description: Allows Player To View Plugin Version Information
+        default: true
+    pr.pos1:
+        description: Allows the use of /pr pos1
+        default: true
+    pr.pos2:
+        description: Allows the use of /pr pos2
+        default: true
+    pr.cam:
+        description: Allows the use of /pr cam
+        default: true
+    pr.get:
+        description: Allows the use of /pr get
         default: true
