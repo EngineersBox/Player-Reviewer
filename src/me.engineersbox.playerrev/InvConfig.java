@@ -13,7 +13,7 @@ import me.engineersbox.playerrev.Main;
 import me.engineersbox.playerrev.exceptions.FieldValueException;
 import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.methodlib.Lib;
-import me.engineersbox.playerrev.mysql.SQLConfig;
+import me.engineersbox.playerrev.mysql.Config;
 
 public class InvConfig extends AbstractFile {
 
@@ -39,7 +39,7 @@ public class InvConfig extends AbstractFile {
 				coordsstring = Lib.getCoordsString(p.getLocation());
 			}
 	    	
-			List<String> criteriaList = SQLConfig.getCriteria();
+			List<String> criteriaList = Config.getCriteria();
 			if (Main.useRanksInApplication) {
 				config.set(pname + ".Rank", rank);
 			} else {
@@ -75,15 +75,15 @@ public class InvConfig extends AbstractFile {
     	if (config.get(pname) != null) {
     		
         	List<String> raters = config.getStringList(pname + ".Raters");
-        	List<String> configCriteria = SQLConfig.getCriteria();
+        	List<String> configCriteria = Config.getCriteria();
         	List<Integer> currentCriteria = new ArrayList<Integer>();
         	for (String current : configCriteria) {
         		currentCriteria.add(Integer.parseInt(config.getString(pname + "." + current).substring(config.getString(pname + "." + current).lastIndexOf("-") + 1)) + 1);
         	}
         	
         	int cTotalRatings = Integer.parseInt(config.getString(pname + ".TotalRatings")) + 1;
-        	List<Integer> valuelist = new ArrayList<Integer>();
         	
+        	List<Integer> valuelist = new ArrayList<Integer>();
 			try {
 				valuelist = Lib.valueListCreator(raters);
 			} catch (SQLException e) {
@@ -122,7 +122,7 @@ public class InvConfig extends AbstractFile {
     	if (config.get(pname) != null) {
     		
         	List<String> raters = config.getStringList(pname + ".Raters");
-        	List<String> configCriteria = SQLConfig.getCriteria();
+        	List<String> configCriteria = Config.getCriteria();
         	List<String> averages = new ArrayList<String>();
         	
         	for (String current : configCriteria) {
