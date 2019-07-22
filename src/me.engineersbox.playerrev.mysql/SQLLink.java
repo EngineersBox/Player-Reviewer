@@ -20,7 +20,7 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			String tableName = SQLConfig.getTableName();
+			String tableName = Config.getTableName();
 			sql = "SELECT name FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			String coordsstring = null;
@@ -40,7 +40,7 @@ public class SQLLink {
 					coordsstring = Lib.getCoordsString(p.getLocation());
 				}
 				
-				List<String> criteriaList = SQLConfig.getCriteria();
+				List<String> criteriaList = Config.getCriteria();
 				String criteriaString = "";
 				String criteriaValueString = "";
 				for (String criteria : criteriaList) {
@@ -71,7 +71,7 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			String tableName = SQLConfig.getTableName();
+			String tableName = Config.getTableName();
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
@@ -98,7 +98,7 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			String tableName = SQLConfig.getTableName();
+			String tableName = Config.getTableName();
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
 			DataSet retdata = new DataSet(rs);
@@ -115,7 +115,7 @@ public class SQLLink {
 		try {
 			
 			String sql;
-			String tableName = SQLConfig.getTableName();
+			String tableName = Config.getTableName();
 			sql = "DELETE FROM " + tableName + " WHERE name = '" + name + "';";
 			Main.MySQL.noRetUpdate(sql);
 			
@@ -133,7 +133,7 @@ public class SQLLink {
 			String ratingliststring = "";
 			List<String> ratinglist = new ArrayList<String>();
 			String sql;
-			String tableName = SQLConfig.getTableName();
+			String tableName = Config.getTableName();
 			
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
@@ -170,7 +170,7 @@ public class SQLLink {
         		}
         	}
 			
-			List<String> criteriaList = SQLConfig.getCriteria();
+			List<String> criteriaList = Config.getCriteria();
 			String criteriaString = "";
 			cIndex = 0;
 			
@@ -194,7 +194,7 @@ public class SQLLink {
 				
 				String rank;
 				String sql;
-				String tableName = SQLConfig.getTableName();
+				String tableName = Config.getTableName();
 				sql = "SELECT rank FROM " + tableName + " WHERE name = '" + name + "';";
 				ResultSet rs = Main.MySQL.querySQL(sql);
 				rs.next();
