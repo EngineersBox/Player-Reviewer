@@ -63,6 +63,25 @@ commands:
         description: Returns position and chunk details
         usage: /pr get
         permission: pr.get
+    rs:
+        description: Returns position and chunk details
+        usage: /rs
+        permission: rs.use
+    rs setparam:
+        description: Returns position and chunk details
+        usage: /rs setparam <parameter> <value>
+        permission: rs.setparam
+        aliases: [sp]
+    rs viewparams:
+        description: Returns position and chunk details
+        usage: /rs viewparams <raw/list>
+        permission: rs.viewparams
+        aliases: [vp]
+    rs clearparams:
+        description: Returns position and chunk details
+        usage: /rs clearparams [<confirm/deny>]
+        permission: rs.clearparams
+        aliases: [cp]
 permissions:
     pr.*:
         description: Gives Access To All Player Reviewer Commands
@@ -81,6 +100,12 @@ permissions:
             pr.pos2: true
             pr.cam: true
             pr.get: true
+            rs.use: true
+            rs.setparam: true
+            rs.viewparams: true
+            rs.clearparams: true
+            rs.list: true
+            rs.raw: true
     pr.use:
         description: Allows The Use Of The pr Command
         default: true
@@ -123,3 +148,21 @@ permissions:
     pr.get:
         description: Allows the use of /pr get
         default: true
+    rs.use:
+        description: Allows the use of /rs
+        default: true
+    rs.setparam:
+        description: Allows the use of /rs setparam
+        default: true
+    rs.viewparams:
+        description: Allows the use of /rs viewparams
+        default: true
+    rs.clearparams:
+        description: Allows the use of /rs clearparams
+        default: true
+    rs.raw:
+        description: Allows viewing parameters in raw JSON format
+        default: true
+    rs.list:
+        description: Allows viewing parameters in list format
+        default: op
