@@ -10,9 +10,9 @@ import me.engineersbox.playerrev.AbstractFile;
 import me.engineersbox.playerrev.Main;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 
-public class SQLConfig extends AbstractFile {
+public class Config extends AbstractFile {
 
-    public SQLConfig(Main main) {
+    public Config(Main main) {
         
         super(main, "applications.yml");
        
