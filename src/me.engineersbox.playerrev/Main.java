@@ -3,6 +3,7 @@ package me.engineersbox.playerrev;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ import me.engineersbox.playerrev.InvConfig;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
 import me.engineersbox.playerrev.mysql.MySQL;
-import me.engineersbox.playerrev.mysql.SQLConfig;
+import me.engineersbox.playerrev.mysql.Config;
 import me.engineersbox.playerrev.updater.SpigotUpdater;
 import me.engineersbox.playerrev.updater.Updaters;
 import me.lucko.luckperms.api.LuckPermsApi;
@@ -179,6 +180,71 @@ class CoordsObject {
     }
 }
 
+class JSONParameter {
+	
+	private List<String> params = new ArrayList<String>();
+	private List<String> values = new ArrayList<String>();
+	
+	public JSONParameter(List<String> params, List<String> values) {
+		this.params = params;
+		this.values = values;
+	}
+	
+	public JSONParameter() {}
+	
+	public List<String> getParams() {
+		return this.params;
+	}
+	
+	public void setParams(List<String> newParams) {
+		this.params = newParams;
+	}
+	
+	public void addParam(String param) {
+		this.params.add(param);
+	}
+	
+	public List<String> getValues() {
+		return this.values;
+	}
+	
+	public void setValues(List<String> newValues) {
+		this.values = newValues;
+	}
+	
+	public void addValue(String value) {
+		this.params.add(value);
+	}
+	
+	public boolean replaceValue(String param, String value) {
+		if (this.params.contains(param)) {
+			int paramIndex = this.params.indexOf(param);
+			this.values.set(paramIndex, value);
+			return true;
+		}
+		return false;
+	}
+	
+	public void addParamValue(String param, String value) {
+		this.params.add(param);
+		this.values.add(value);
+	}
+	
+	public String toString() {
+		String retVal = "";
+		
+		if (params.size() > 0 && values.size() > 0) {
+			retVal += this.params.get(0) + ": " + this.values.get(0);
+			for (int i = 1; i < this.params.size(); i++) {
+				retVal += ", " + this.params.get(i) + ": " + this.values.get(i);
+			}
+		}
+		
+		return retVal;
+	}
+	
+}
+
 public class Main extends JavaPlugin implements Listener {
 	
 	public static FileConfiguration config;
@@ -187,9 +253,7 @@ public class Main extends JavaPlugin implements Listener {
 	//Globals
 	public static String prefix = ChatColor.RED + "[" + ChatColor.DARK_AQUA + "Player Reviewer" + ChatColor.RED + "] ";
 	public static void InfoHeader(Player p, String info) {
-		p.sendMessage("");
     	p.sendMessage(ChatColor.DARK_GRAY + "----=<{" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + info + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-    	p.sendMessage("");
 	}
 	public static boolean useConfigRanks;
 	public static boolean useRanksInApplication;
@@ -202,11 +266,13 @@ public class Main extends JavaPlugin implements Listener {
 	public static boolean usePlotLoc = false;
 	public static LuckPermsApi LPapi;
 	public static String rankPlugin;
+	public static boolean atConfirm = false;
 	
 	double magicChunkyNumber = 57.29577951308232;
 	public static Map<String, CoordsObject> positions = new HashMap<String, CoordsObject>();
     public static MaxSizeHashMap<String, CameraObject> cameras;
     public static int camCount = 0;
+    public static Map<String, JSONParameter> paramMap = new HashMap<String, JSONParameter>();
 	
     public void onEnable() {
     	
@@ -247,14 +313,14 @@ public class Main extends JavaPlugin implements Listener {
     	if(plotsquared != null && plotsquared.isEnabled()) {
     		Bukkit.getLogger().info("[PlayerReviewer] Found plugin PlotSquared! Plot locations enabled");
     		Bukkit.getLogger().info("[PlayerReviewer] sbpschunky Enabled!");
-        	usePlotLoc = SQLConfig.usePlotLoc();
+        	usePlotLoc = Config.usePlotLoc();
         } else {
         	Bukkit.getLogger().log(null, "[PlayerReviewer] Could not find PlotSquared! Reverting To Player Positions");
             return;
         }
-    	UseSQL = SQLConfig.SQLEnabled();
+    	UseSQL = Config.SQLEnabled();
     	if (UseSQL == true) {
-    		MySQL = new MySQL(SQLConfig.getHOSTNAME(), "", SQLConfig.getDATABASE(), SQLConfig.getUSER(), SQLConfig.getPASS());
+    		MySQL = new MySQL(Config.getHOSTNAME(), "", Config.getDATABASE(), Config.getUSER(), Config.getPASS());
         	try {
     			c = MySQL.openConnection();
     		} catch (SQLException | ClassNotFoundException e) {
@@ -262,8 +328,8 @@ public class Main extends JavaPlugin implements Listener {
     		}
     	}
     	
-    	cameras = new MaxSizeHashMap<String, CameraObject>(SQLConfig.maxCamCount());
-    	SQLConfig.InitRankConfig();
+    	cameras = new MaxSizeHashMap<String, CameraObject>(Config.maxCamCount());
+    	Config.InitRankConfig();
     	
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
@@ -279,6 +345,10 @@ public class Main extends JavaPlugin implements Listener {
         getCommand("pr pos2").setExecutor(new Commands());
         getCommand("pr cam").setExecutor(new Commands());
         getCommand("pr get").setExecutor(new Commands());
+        getCommand("rs").setExecutor(new Commands());
+        getCommand("rs setparam").setExecutor(new Commands());
+        getCommand("rs viewparams").setExecutor(new Commands());
+        getCommand("rs clearparams").setExecutor(new Commands());
     }
     
     @Override
