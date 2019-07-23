@@ -15,7 +15,7 @@ import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 
 public class SQLLink {
 	
-	public static void newApp(Player p, String name, String rank) throws SQLException, PlotInheritanceException {
+	public static void newApp(Player p, String name, String rank, String jsonSettings) throws SQLException, PlotInheritanceException {
 		
 		try {
 			
@@ -48,11 +48,10 @@ public class SQLLink {
 					criteriaValueString += "'0', ";
 				}
 				if (Main.useRanksInApplication) {
-					sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
+					sql = "INSERT INTO " + tableName +" (uuid, settings, status, name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + p.getUniqueId().toString() + "', '" + jsonSettings + "', 'requested', '" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
 				} else {
-					sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + null + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
+					sql = "INSERT INTO " + tableName +" (uuid, settings, status, name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + p.getUniqueId().toString() + "', '" + jsonSettings + "', 'requested', '" + name + "', '" + null + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
 				}
-				sql = "INSERT INTO " + tableName +" (name, rank, " + criteriaString + "plotloc, totalratings, ratinglist) VALUES ('" + name + "', '" + rank + "', " + criteriaValueString + "'" + coordsstring + "', '0', '');";
 				Main.MySQL.noRetUpdate(sql);
 				
 			}
