@@ -15,6 +15,12 @@ import org.bukkit.entity.Player;
 
 import com.google.gson.Gson;
 
+import me.engineersbox.playerrev.chunky.CameraObject;
+import me.engineersbox.playerrev.chunky.CoordsObject;
+import me.engineersbox.playerrev.chunky.JSONParameter;
+import me.engineersbox.playerrev.chunky.Orientation;
+import me.engineersbox.playerrev.chunky.Position;
+import me.engineersbox.playerrev.exceptions.ChunkyParameterException;
 import me.engineersbox.playerrev.exceptions.FieldValueException;
 import me.engineersbox.playerrev.exceptions.HashMapSizeOverflow;
 import me.engineersbox.playerrev.exceptions.InvalidGroupException;
@@ -22,6 +28,8 @@ import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.methodlib.GroupPlugins;
 import me.engineersbox.playerrev.methodlib.HoverText;
 import me.engineersbox.playerrev.methodlib.Lib;
+import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
+import me.engineersbox.playerrev.mysql.Config;
 import me.engineersbox.playerrev.mysql.SQLLink;
 
 public class Commands implements CommandExecutor {
@@ -44,24 +52,28 @@ public class Commands implements CommandExecutor {
 					//pr apply <rank>
 					if ((args[0].equalsIgnoreCase("apply")) && (p.hasPermission("pr.apply"))) {
 						
-						if (args.length == 2) {
+						String rankName = "";
+						
+						if (args.length <= 2) {
 							if (!Main.useRanksInApplication) {
-								p.sendMessage(Main.prefix + ChatColor.RED + "Applications for ranks disabled, ranks are decided by staff.");
+								p.sendMessage(Main.prefix + ChatColor.RED + "Ignoring ranks");
+							} else {
+								rankName = args[1];
 							}
 							
-							if ((RankEnum.isValid(args[1].toUpperCase()) == true) && (Main.useConfigRanks == false)) {
+							if (((RankEnum.isValid(rankName.toUpperCase()) == true) || (!Main.useRanksInApplication)) && (Main.useConfigRanks == false)) {
 								
 								try {
 									if (Main.UseSQL == true) {
 										if (Main.useRanksInApplication) {
-											SQLLink.newApp(p, p.getName(), args[1].toString().toLowerCase());
+											SQLLink.newApp(p, p.getName(), rankName.toString().toLowerCase(),  Lib.playerJsonParams(p));
 										} else {
-											SQLLink.newApp(p, p.getName(), null);
+											SQLLink.newApp(p, p.getName(), null,  Lib.playerJsonParams(p));
 										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
 										if (Main.useRanksInApplication) {
-											InvConfig.newApp(p, p.getName(), args[1].toString().toLowerCase());
+											InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
 										} else {
 											InvConfig.newApp(p, p.getName(), null);
 										}
@@ -72,21 +84,23 @@ public class Commands implements CommandExecutor {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
 								} catch (PlotInheritanceException e) {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
+								} catch (ChunkyParameterException e) {
+									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + e.toString());
 								}
 							
-							} else if ((Main.ranksEnum.isValid(args[1], Arrays.asList(args[1].toUpperCase())) == true) && (Main.useConfigRanks == true)) {
+							} else if (((Main.ranksEnum.isValid(rankName, Arrays.asList(rankName.toUpperCase())) == true) || (!Main.useRanksInApplication)) && (Main.useConfigRanks == true)) {
 								
 								try {
 									if (Main.UseSQL == true) {
 										if (Main.useRanksInApplication) {
-											SQLLink.newApp(p, p.getName(), args[1].toString().toLowerCase());
+											SQLLink.newApp(p, p.getName(), rankName.toString().toLowerCase(),  Lib.playerJsonParams(p));
 										} else {
-											SQLLink.newApp(p, p.getName(), null);
+											SQLLink.newApp(p, p.getName(), null, Lib.playerJsonParams(p));
 										}
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									} else {
 										if (Main.useRanksInApplication) {
-											InvConfig.newApp(p, p.getName(), args[1].toString().toLowerCase());
+											InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
 										} else {
 											InvConfig.newApp(p, p.getName(), null);
 										}
@@ -94,9 +108,18 @@ public class Commands implements CommandExecutor {
 									}
 									
 								} catch (SQLException | FieldValueException e) {
+									Bukkit.getLogger().info(e.toString());
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
 								} catch (PlotInheritanceException e) {
 									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
+								} catch (ChunkyParameterException e) {
+									if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: camera")) {
+										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "No camera instance registered!");
+										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Register it with " + ChatColor.ITALIC + "/pr cam");
+									} else if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: position")) {
+										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "No build location registered!");
+										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Assign location with " + ChatColor.ITALIC + " /pr pos1 " + ChatColor.RESET + ChatColor.DARK_PURPLE + " and " + ChatColor.ITALIC + "/pr pos2");
+									}
 								}
 							
 							} else {
@@ -111,7 +134,7 @@ public class Commands implements CommandExecutor {
 						} else {
 							
 							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr apply <rank>");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr apply [<rank>]");
 							
 						}
 					
@@ -400,12 +423,13 @@ public class Commands implements CommandExecutor {
 		                    CoordsObject tpos = Main.positions.get(tHash);
 		                    tpos.setPosition1(p.getLocation());
 		                    Main.positions.put(tHash,tpos);
+		                    Main.chunkList.put(p.getUniqueId(), getChunks(tHash));
 		                    
-		                }else {
+		                } else {
 		                	
 		                    CoordsObject tpos = new CoordsObject();
 		                    tpos.setPosition1(p.getLocation());
-		                    Main.positions.put(tHash,tpos);
+		                    Main.positions.put(tHash, tpos);
 		                }
 		                
 		                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 1 registered");
@@ -417,6 +441,7 @@ public class Commands implements CommandExecutor {
 		                    CoordsObject tpos = Main.positions.get(tHash);
 		                    tpos.setPosition2(p.getLocation());
 		                    Main.positions.put(tHash, tpos);
+		                    Main.chunkList.put(p.getUniqueId(), getChunks(tHash));
 		                    
 		                } else {
 		                	
@@ -430,47 +455,71 @@ public class Commands implements CommandExecutor {
 		                
 		            } else if ((args[0].equalsIgnoreCase("cam")) && (p.hasPermission("pr.cam"))) {
 		            	
-		            	if (Main.camCount < Main.cameras.maxSize()) {
-		            		Main.camCount += 1;
+		            	try {
 		            		
-		            		if (Main.cameras.get(tHash + "_" + Main.camCount) != null) {
-			                	
-			                    CameraObject cam = Main.cameras.get(tHash + "_" + Main.camCount);
+		            		MaxSizeHashMap<String, CameraObject> cams = Main.cameras.get(p.getUniqueId());
+		            		
+		            		if (cams != null) {
+		            			int camCount = cams.size();
+		            			
+		            			if (camCount < cams.maxSize()) {
+				            		camCount += 1;
+				            		
+				            		if (cams.get(tHash + "_" + camCount) != null) {
+					                	
+					                    CameraObject cam = cams.get(tHash + "_" + camCount);
+					                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+					                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+					                    cam.position.setX(p.getLocation().getX());
+					                    cam.position.setY(p.getLocation().getY());
+					                    cam.position.setZ(p.getLocation().getZ());
+				                    
+										cams.put(tHash + "_" + camCount, cam);
+										Main.cameras.put(p.getUniqueId(), cams);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
+					                    
+					                } else {
+					                	
+					                    CameraObject cam = new CameraObject(tHash + "_" + camCount);
+					                    cam.orientation = new Orientation();
+					                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+					                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+					                    cam.position = new Position();
+					                    cam.position.setX(p.getLocation().getX());
+					                    cam.position.setY(p.getLocation().getY());
+					                    cam.position.setZ(p.getLocation().getZ());
+					                    
+					                    cams.put(tHash + "_" + camCount, cam);
+										Main.cameras.put(p.getUniqueId(), cams);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
+					                    
+					                }
+					              
+				            	} else {
+				            		p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count " + Config.maxCamCount() + " reached!");
+				            	}
+		            			
+		            		} else {
+		            			
+		            			cams = new MaxSizeHashMap<String, CameraObject>(Config.maxCamCount());
+		            			
+		            			CameraObject cam = new CameraObject(tHash + "_1");
+			                    cam.orientation = new Orientation();
 			                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
 			                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+			                    cam.position = new Position();
 			                    cam.position.setX(p.getLocation().getX());
 			                    cam.position.setY(p.getLocation().getY());
 			                    cam.position.setZ(p.getLocation().getZ());
 			                    
-			                    try {
-									Main.cameras.put(tHash + "_" + Main.camCount, cam);
-									p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + Main.camCount + " registered");
-								} catch (HashMapSizeOverflow e) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count: " + Main.camCount + " reached!");
-								}
-			                    
-			                } else {
-			                	
-			                    CameraObject cam = new CameraObject();
-			                    cam.orientation = new orientation();
-			                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
-			                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
-			                    cam.position = new position();
-			                    cam.position.setX(p.getLocation().getX());
-			                    cam.position.setY(p.getLocation().getY());
-			                    cam.position.setZ(p.getLocation().getZ());
-			                    
-			                    try {
-									Main.cameras.put(tHash + "_" + Main.camCount, cam);
-									p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + Main.camCount + " registered");
-								} catch (HashMapSizeOverflow e) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count: " + Main.camCount + " reached!");
-								}
-			                    
-			                }
-			                
-		            	} else {
-		            		p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count " + Main.camCount + " reached!");
+			                    cams.put(tHash + "_1", cam);
+								Main.cameras.put(p.getUniqueId(), cams);
+								p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera 1 registered");
+		            			
+		            		}
+		            		
+		            	} catch (HashMapSizeOverflow e) {
+		            		p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count " + Config.maxCamCount() + " reached!");
 		            	}
 		            	
 		            } else if ((args[0].equalsIgnoreCase("get")) && (p.hasPermission("pr.get"))) {
@@ -496,11 +545,12 @@ public class Commands implements CommandExecutor {
 		            		}
 	            		}
 	            		
-	            		if (Main.cameras.get(tHash + "_1") != null) {
+	            		if (Main.cameras.get(p.getUniqueId()) != null) {
 	            			cams.clear();
 	            			
-	            			for (int i = 1; i <= Main.cameras.maxSize(); i++) {
-		            			if (Main.cameras.get(tHash + "_" + i) != null) {
+	            			MaxSizeHashMap<String, CameraObject> cCams = Main.cameras.get(p.getUniqueId());
+	            			for (int i = 1; i <= cCams.maxSize(); i++) {
+		            			if (cCams.get(tHash + "_" + i) != null) {
 		            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Cam " + i + ":" + ChatColor.GREEN + " Registered");
 		            			} else {
 		            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Cam " + i + ":" + ChatColor.DARK_RED + " Not registered");
@@ -519,16 +569,138 @@ public class Commands implements CommandExecutor {
 			                	p.sendMessage(cam);
 			                }
 		                }
-		                
-		                Gson gson = new Gson();
-		                gson.toJson(Main.cameras.get(tHash + "_1"));
-        		    	
+					
+	            } else if (((args[0].equalsIgnoreCase("setparam")) || (args[0].equalsIgnoreCase("pr"))) && (p.hasPermission("pr.setparam"))) {
+					
+					if (args.length >= 3) {
+						
+						List<String> tempArgs = Arrays.asList(args);
+						
+						String param = tempArgs.get(1);
+						String value = tempArgs.get(2);
+						
+						if (args.length > 3) {
+							for (String arg : tempArgs.subList(3, tempArgs.size())) {
+								value += " " + arg;
+							}
+						}
+						
+						JSONParameter jParam;
+						String playerMsg = "Parameter ";
+						
+						if (Main.paramMap.containsKey(p.getUniqueId())) {
+							jParam = Main.paramMap.get(p.getUniqueId());
+							if (jParam.getParams().contains(param)) {
+								jParam.replaceValue(param, value);
+								playerMsg += "changed";
+							} else {
+								jParam.addParamValue(param, value);
+								playerMsg += "added";
+							}
+						} else {
+							jParam = new JSONParameter();
+							jParam.addParamValue(param, value);
+							playerMsg += "added";
+						}
+						
+						Main.paramMap.put(p.getUniqueId(), jParam);
+						p.sendMessage(Main.prefix + ChatColor.AQUA + playerMsg);
+						
 					} else {
+						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Not enough arguments!");
+					}
+					
+				} else if (((args[0].equalsIgnoreCase("viewparams")) || (args[0].equalsIgnoreCase("vp"))) && (p.hasPermission("pr.viewparams"))) {
+					
+					JSONParameter jParam = Main.paramMap.get(p.getUniqueId());
+					Gson gson = new Gson();
+					
+					if (args.length == 2) {
+						if (jParam != null) {
+							if ((args[1].equalsIgnoreCase("raw")) && (p.hasPermission("pr.raw"))) {
+								p.sendMessage("");
+								Main.InfoHeader(p, "Render Service Parameters");
+								p.sendMessage(ChatColor.GRAY + jParam.toString());
+								Main.InfoHeader(p, "Render Service Parameters");
+								p.sendMessage("");
+							} else if ((args[1].equalsIgnoreCase("list")) && (p.hasPermission("pr.list"))) {
+
+								int bracketCount = 0;
+								String spaces = "";
+								String[] jString = gson.toJson(jParam.toString()).replaceAll("[,\"\\\\\"]", "").split("\\s");
+								List<String> pMsg = new ArrayList<String>();
+								
+								for (int i = 0; i < jString.length; i++) {
+									if (jString[i].contains("{")) {
+										bracketCount += 1;
+									} else if (jString[i].contains("}")) {
+										bracketCount -= 1;
+									}
+									
+									String tempSpaces = "";
+									for (int j = 0; j < bracketCount; j++) {
+										tempSpaces += "  ";
+									}
+									spaces = tempSpaces;
+									
+									if (jString[i].endsWith(":")) {
+										if (jString[i + 1].equals("{")) {
+											pMsg.add(ChatColor.DARK_GRAY + spaces + "- " + ChatColor.GREEN + jString[i].replace(":", ""));
+										} else {
+											pMsg.add(ChatColor.DARK_GRAY + spaces + "- " + ChatColor.GREEN + jString[i].replace(":", "") + ChatColor.WHITE + " :: " + ChatColor.RED + jString[i + 1]);
+										}
+									}
+								}
+								
+								p.sendMessage("");
+								Main.InfoHeader(p, "Render Service Parameters");
+								for (String msg : pMsg) {
+									p.sendMessage(msg);
+								}
+								Main.InfoHeader(p, "Render Service Parameters");
+								p.sendMessage("");
+							} else {
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid display type");
+								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr viewparams <raw/list>");
+							}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.AQUA + "No parameters set");
+						}
+					} else {
+						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid display type");
+						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr viewparams <raw/list>");
+					}
+				
+				} else if (((args[0].equalsIgnoreCase("clearparams")) || (args[0].equalsIgnoreCase("cp"))) && (p.hasPermission("pr.clearparams"))) {
+					
+					if (args.length == 1) {
+						p.sendMessage(Main.prefix + ChatColor.BLUE + "Are you sure you want to clear render parameters?");
+						p.sendMessage(Main.prefix + ChatColor.GREEN + "CONFIRM" + ChatColor.BLUE + " clearing paramters with /pr clearparams confirm");
+						p.sendMessage(Main.prefix + ChatColor.RED + "DENY" + ChatColor.BLUE + " clearing paramters with /pr clearparams deny");
+						Main.atConfirm = true;
+					} else if ((args.length == 2) && (Main.atConfirm == true)) {
+						if (args[1].equalsIgnoreCase("confirm")) {
+							Main.paramMap.remove(p.getUniqueId());
+							p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameters cleared");
+							Main.atConfirm = false;
+						} else if (args[1].equalsIgnoreCase("deny")) {
+							p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameters not cleared");
+							Main.atConfirm = false;
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid syntax");
+							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr clearparams <confirm/deny>");
+						}
+					} else {
+						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid syntax");
+						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr clearparams");
+					}
+					
+				} else {
 						
 						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command!");
 						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Commands With: " + ChatColor.ITALIC + "/pr help");
 						
-					}
+				}
 					
 				}
 				
@@ -541,7 +713,7 @@ public class Commands implements CommandExecutor {
 		}
 		
 		return true;
-	
+		
 	}
 	
 	public String getChunks(String tHash) {
