@@ -12,10 +12,16 @@ import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 import com.github.intellectualsites.plotsquared.plot.object.Plot;
 import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+import com.google.gson.Gson;
 
+import me.engineersbox.playerrev.Main;
+import me.engineersbox.playerrev.chunky.CameraObject;
+import me.engineersbox.playerrev.chunky.JSONParameter;
+import me.engineersbox.playerrev.exceptions.ChunkyParameterException;
 import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 
 public class Lib {
@@ -196,6 +202,41 @@ public class Lib {
 			return plot.getCenter();
 		} else {
 			throw new PlotInheritanceException(p.getName().toString());
+		}
+	}
+	
+	public static String playerJsonParams(Player p) throws ChunkyParameterException {
+		Gson gson = new Gson();
+		MaxSizeHashMap<String, CameraObject> cams = Main.cameras.get(p.getUniqueId());
+		
+		JSONParameter jParam = Main.paramMap.get(p.getUniqueId());
+		CameraObject camera = cams.get(p.getUniqueId().toString() + "_1");
+		String chunkLoc = Main.chunkList.get(p.getUniqueId());
+		String retVal = "";
+		boolean addComma = false;
+		
+		if (jParam != null) {
+			retVal += gson.toJson(jParam.toString());
+			addComma = true;
+		} else {
+			addComma = false;
+		}
+		
+		if (camera != null) {
+			if (addComma) {
+				retVal += ", " + camera.toString();
+			} else {
+				retVal += camera.toString();
+			}
+		} else {
+			throw new ChunkyParameterException("camera");
+		} 
+		
+		if(chunkLoc != null) {
+			retVal += ", chunkList: " + chunkLoc;
+			return gson.toJson(retVal);
+		} else {
+			throw new ChunkyParameterException("position");
 		}
 	}
 
