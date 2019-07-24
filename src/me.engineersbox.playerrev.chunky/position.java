@@ -1,6 +1,6 @@
 package me.engineersbox.playerrev.chunky;
 
-public class Position {
+public class position {
 
     public double x = 0;
     public double y = 0;
@@ -31,7 +31,7 @@ public class Position {
     }
     
     public String toString() {
-    	return "position: { x:" + this.x + ", y: " + this.y + ", z: " + this.z + " }";
+    	return "\"position\": { \"x\": " + this.x + ", \"y\": " + this.y + ", \"z\": " + this.z + " }";
     }
 	
 }
