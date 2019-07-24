@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -25,6 +26,7 @@ import me.engineersbox.playerrev.InvConfig;
 import me.engineersbox.playerrev.chunky.CameraObject;
 import me.engineersbox.playerrev.chunky.CoordsObject;
 import me.engineersbox.playerrev.chunky.JSONParameter;
+import me.engineersbox.playerrev.enums.Status;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
 import me.engineersbox.playerrev.mysql.MySQL;
@@ -55,6 +57,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static LuckPermsApi LPapi;
 	public static String rankPlugin;
 	public static boolean atConfirm = false;
+	public static Map<UUID, Status> appStatus = new HashMap<UUID, Status>();
 	
 	double magicChunkyNumber = 57.29577951308232;
 	public static Map<String, CoordsObject> positions = new HashMap<String, CoordsObject>();
@@ -82,7 +85,7 @@ public class Main extends JavaPlugin implements Listener {
     	} catch (NoClassDefFoundError e) {
     		Bukkit.getLogger().warning("[PlayerReviewer] No provider for LuckPermsApi or PlotAPI");
     	}
-		
+    	
 		if (Bukkit.getPluginManager().getPlugin("PermissionsEx") != null) {
 			rankPlugin = "pex";
 		} else if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
@@ -120,6 +123,7 @@ public class Main extends JavaPlugin implements Listener {
     	
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
+        getCommand("pr apphelp").setExecutor(new Commands());
         getCommand("pr apply").setExecutor(new Commands());
         getCommand("pr validranks").setExecutor(new Commands());
         getCommand("pr rate").setExecutor(new Commands());
@@ -128,11 +132,13 @@ public class Main extends JavaPlugin implements Listener {
         getCommand("pr approval").setExecutor(new Commands());
         getCommand("pr removeapplication").setExecutor(new Commands());
         getCommand("pr version").setExecutor(new Commands());
+        getCommand("pr status").setExecutor(new Commands());
         getCommand("pr pos1").setExecutor(new Commands());
         getCommand("pr pos2").setExecutor(new Commands());
         getCommand("pr cam").setExecutor(new Commands());
-        getCommand("pr get").setExecutor(new Commands());
+        getCommand("pr chunkySettings").setExecutor(new Commands());
         getCommand("pr setparam").setExecutor(new Commands());
+        getCommand("pr removeparam").setExecutor(new Commands());
         getCommand("pr viewparams").setExecutor(new Commands());
         getCommand("pr clearparams").setExecutor(new Commands());
     }
@@ -149,6 +155,27 @@ public class Main extends JavaPlugin implements Listener {
     		}
     	}
  
+    }
+    
+    public void playerLogin(PlayerLoginEvent e) {
+    	Player p = e.getPlayer();
+    	Status status = Main.appStatus.get(p.getUniqueId());
+    	if (status != null) {
+    		switch(status) {
+			
+				case APPROVED:
+					p.sendMessage(Main.prefix + ChatColor.AQUA + "Your application was " + ChatColor.GREEN + "approved");
+					break;
+					
+				case DENIED:
+					p.sendMessage(Main.prefix + ChatColor.AQUA + "Your application was " + ChatColor.RED + "denied");
+					break;
+					
+				default:
+					break;
+		
+    		}
+    	}
     }
     
 }
