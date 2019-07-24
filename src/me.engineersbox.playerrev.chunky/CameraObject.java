@@ -3,8 +3,8 @@ package me.engineersbox.playerrev.chunky;
 public class CameraObject {
 
     public String name = "camera";
-    public Position position;
-    public Orientation orientation;
+    public position position;
+    public orientation orientation;
     public String projectionMode = "PINHOLE";
     public float fov = 90.0f;
     public String dof = "Infinity";
@@ -24,19 +24,19 @@ public class CameraObject {
         this.name = name;
     }
 
-    public me.engineersbox.playerrev.chunky.Position getPosition() {
+    public me.engineersbox.playerrev.chunky.position getPosition() {
         return position;
     }
 
-    public void setPosition(me.engineersbox.playerrev.chunky.Position position) {
+    public void setPosition(me.engineersbox.playerrev.chunky.position position) {
         this.position = position;
     }
 
-    public me.engineersbox.playerrev.chunky.Orientation getOrientation() {
+    public me.engineersbox.playerrev.chunky.orientation getOrientation() {
         return orientation;
     }
 
-    public void setOrientation(me.engineersbox.playerrev.chunky.Orientation orientation) {
+    public void setOrientation(me.engineersbox.playerrev.chunky.orientation orientation) {
         this.orientation = orientation;
     }
 
@@ -73,7 +73,7 @@ public class CameraObject {
     }
     
     public String toString() {
-    	return "camera: { " + this.position.toString() + ", " + this.orientation.toString() + ", projectionMode: " + this.projectionMode + ", fov: " + fov + ", dof: " + dof + ", focalOffset: " + focalOffset + " }";
+    	return "\"" + this.name +"\": { " + this.position.toString() + ", " + this.orientation.toString() + ", \"projectionMode\": \"" + this.projectionMode + "\", \"fov\": " + fov + ", \"dof\": \"" + dof + "\", \"focalOffset\": " + focalOffset + " }";
     }
 	
 }
