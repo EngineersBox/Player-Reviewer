@@ -79,7 +79,15 @@ public class Config extends AbstractFile {
 	}
 	
 	public static int maxCamCount() {
-    	return config.getInt("Application-Settings.Max-Camera-Count");
+    	return config.getInt("Chunky-Config.Max-Camera-Count");
     }
+	
+	public static boolean useChunky() {
+		return config.getBoolean("Chunky-Config.Use-Chunky");
+	}
+	
+	public static Object getOption(String option) {
+		return config.get(option);
+	}
 
 }
