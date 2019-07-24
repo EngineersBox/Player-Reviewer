@@ -18,8 +18,10 @@ import com.google.gson.Gson;
 import me.engineersbox.playerrev.chunky.CameraObject;
 import me.engineersbox.playerrev.chunky.CoordsObject;
 import me.engineersbox.playerrev.chunky.JSONParameter;
-import me.engineersbox.playerrev.chunky.Orientation;
-import me.engineersbox.playerrev.chunky.Position;
+import me.engineersbox.playerrev.chunky.orientation;
+import me.engineersbox.playerrev.chunky.position;
+import me.engineersbox.playerrev.enums.RankEnum;
+import me.engineersbox.playerrev.enums.Status;
 import me.engineersbox.playerrev.exceptions.ChunkyParameterException;
 import me.engineersbox.playerrev.exceptions.FieldValueException;
 import me.engineersbox.playerrev.exceptions.HashMapSizeOverflow;
@@ -40,224 +42,296 @@ public class Commands implements CommandExecutor {
 			
 			Player p = (Player) sender;
 			String tHash = p.getUniqueId().toString();
+			boolean useChunky = Config.useChunky();
 			
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
 					
 				if (args.length == 0) {
 					
-					p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Use: " + ChatColor.ITALIC + "/pr help" + ChatColor.RESET + ChatColor.DARK_PURPLE + " To View All Commands");
+					p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Use: " + ChatColor.ITALIC + "/pr help" + ChatColor.RESET + ChatColor.LIGHT_PURPLE + " To View All Commands");
 					
 				} else if (args.length > 0) {
 					
 					//pr apply <rank>
-					if ((args[0].equalsIgnoreCase("apply")) && (p.hasPermission("pr.apply"))) {
+					if (args[0].equalsIgnoreCase("apply")) {
 						
-						String rankName = "";
-						
-						if (args.length <= 2) {
-							if (!Main.useRanksInApplication) {
-								p.sendMessage(Main.prefix + ChatColor.RED + "Ignoring ranks");
-							} else {
-								rankName = args[1];
-							}
+						if (p.hasPermission("pr.apply")) {
+							String rankName = "";
 							
-							if (((RankEnum.isValid(rankName.toUpperCase()) == true) || (!Main.useRanksInApplication)) && (Main.useConfigRanks == false)) {
+							if (args.length <= 2) {
+								if (Main.useRanksInApplication) {
+									rankName = args[1];
+								}
 								
-								try {
-									if (Main.UseSQL == true) {
-										if (Main.useRanksInApplication) {
-											SQLLink.newApp(p, p.getName(), rankName.toString().toLowerCase(),  Lib.playerJsonParams(p));
-										} else {
-											SQLLink.newApp(p, p.getName(), null,  Lib.playerJsonParams(p));
-										}
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
-									} else {
-										if (Main.useRanksInApplication) {
-											InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
-										} else {
-											InvConfig.newApp(p, p.getName(), null);
-										}
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
-									}
+								if ((Main.useConfigRanks) && (!Main.useRanksInApplication)) {
 									
-								} catch (SQLException | FieldValueException e) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
-								} catch (PlotInheritanceException e) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
-								} catch (ChunkyParameterException e) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + e.toString());
-								}
-							
-							} else if (((Main.ranksEnum.isValid(rankName, Arrays.asList(rankName.toUpperCase())) == true) || (!Main.useRanksInApplication)) && (Main.useConfigRanks == true)) {
-								
-								try {
-									if (Main.UseSQL == true) {
-										if (Main.useRanksInApplication) {
-											SQLLink.newApp(p, p.getName(), rankName.toString().toLowerCase(),  Lib.playerJsonParams(p));
+									try {
+										if (Main.UseSQL) {
+											if (Main.useRanksInApplication) {
+												SQLLink.newApp(p, p.getName(), rankName.toLowerCase(),  Lib.playerJsonParams(p));
+											} else {
+												SQLLink.newApp(p, p.getName(), null,  Lib.playerJsonParams(p));
+											}
 										} else {
-											SQLLink.newApp(p, p.getName(), null, Lib.playerJsonParams(p));
+											if (Main.useRanksInApplication) {
+												InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
+											} else {
+												InvConfig.newApp(p, p.getName(), null);
+											}
 										}
+										
+										p.sendMessage(Main.prefix + ChatColor.RED + "Ignoring ranks");
+										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
-									} else {
-										if (Main.useRanksInApplication) {
-											InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
-										} else {
-											InvConfig.newApp(p, p.getName(), null);
+										
+									} catch (SQLException | FieldValueException e) {
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+									} catch (PlotInheritanceException e) {
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
+									} catch (ChunkyParameterException e) {
+										if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: camera")) {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "No camera instance registered!");
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Register it with " + ChatColor.ITALIC + "/pr cam");
+										} else if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: position")) {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "No build location registered!");
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Assign location with " + ChatColor.ITALIC + " /pr pos1 " + ChatColor.RESET + ChatColor.LIGHT_PURPLE + " and " + ChatColor.ITALIC + "/pr pos2");
 										}
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 									}
+								
+								} else if ((Main.ranksEnum.isValid(rankName, Arrays.asList(rankName.toUpperCase()))) && (Main.useConfigRanks) && (Main.useRanksInApplication)) {
 									
-								} catch (SQLException | FieldValueException e) {
-									Bukkit.getLogger().info(e.toString());
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
-								} catch (PlotInheritanceException e) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
-								} catch (ChunkyParameterException e) {
-									if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: camera")) {
-										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "No camera instance registered!");
-										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Register it with " + ChatColor.ITALIC + "/pr cam");
-									} else if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: position")) {
-										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "No build location registered!");
-										p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Assign location with " + ChatColor.ITALIC + " /pr pos1 " + ChatColor.RESET + ChatColor.DARK_PURPLE + " and " + ChatColor.ITALIC + "/pr pos2");
+									try {
+										if (Main.UseSQL) {
+											if (Main.useRanksInApplication) {
+												SQLLink.newApp(p, p.getName(), rankName.toLowerCase(),  Lib.playerJsonParams(p));
+											} else {
+												SQLLink.newApp(p, p.getName(), null, Lib.playerJsonParams(p));
+											}
+										} else {
+											if (Main.useRanksInApplication) {
+												InvConfig.newApp(p, p.getName(), rankName.toLowerCase());
+											} else {
+												InvConfig.newApp(p, p.getName(), null);
+											}
+										}
+										
+										p.sendMessage(Main.prefix + ChatColor.RED + "Ignoring ranks");
+										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+										
+									} catch (SQLException | FieldValueException e) {
+										Bukkit.getLogger().info(e.toString());
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+									} catch (PlotInheritanceException e) {
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
+									} catch (ChunkyParameterException e) {
+										if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: camera")) {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "No camera instance registered!");
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Register it with " + ChatColor.ITALIC + "/pr cam");
+										} else if (e.toString().equalsIgnoreCase("me.engineersbox.playerrev.exceptions.ChunkyParameterException: position")) {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "No build location registered!");
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Assign location with " + ChatColor.ITALIC + " /pr pos1 " + ChatColor.RESET + ChatColor.LIGHT_PURPLE + " and " + ChatColor.ITALIC + "/pr pos2");
+										}
 									}
-								}
-							
-							} else {
-								if (!Main.useRanksInApplication) {
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank!");
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
-								}
 								
-							}
-							return true;
-							
-						} else {
-							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr apply [<rank>]");
-							
-						}
-					
-					} else if((args[0].equalsIgnoreCase("help")) && (p.hasPermission("pr.help"))) {
-						
-						Main.InfoHeader(p, "Player Reviewer");
-						HoverText.HoverMessage(p, "&0> &2/pr validranks", Arrays.asList("&6Description:", "&cDisplays All Ranks That Can Be Applied For"));
-						HoverText.HoverMessage(p, "&0> &2/pr apply <rank>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
-						HoverText.HoverMessage(p, "&0> &2/pr removeapplication <name>", Arrays.asList("&6Description:", "&cRemove An Open Application"));
-						HoverText.HoverMessage(p, "&0> &2/pr approval <player> <approve/deny>", Arrays.asList("&6Description:", "&cApprove Or Deny An Application"));
-						HoverText.HoverMessage(p, "&0> &2/pr ratings <player>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
-						HoverText.HoverMessage(p, "&0> &2/pr rate <player> <atmosphere> <originality> <terrain> &2<structure> <layout>", Arrays.asList("&6Description:", "&cSubmit A Rating To A Player's Open Application"));
-						HoverText.HoverMessage(p, "&0> &2/pr gotoplot <player>", Arrays.asList("&6Description:", "&cTeleports To Player's Open Application Plot"));
-						HoverText.HoverMessage(p, "&0> &2/pr version", Arrays.asList("&6Description:", "&cDisplays The Plugin Version And Author"));
-						HoverText.HoverMessage(p, "&0> &2/pr help", Arrays.asList("&6Description:", "&cOpens This Menu"));
-		            	Main.InfoHeader(p, "Player Reviewer");
-						
-					} else if (((args[0].equalsIgnoreCase("validranks")) | (args[0].equalsIgnoreCase("vr")) | (args[0].equalsIgnoreCase("ranks"))) && (p.hasPermission("pr.validranks"))) {
-						
-						Main.InfoHeader(p, "Player Reviewer Valid Ranks");
-						if (Main.useConfigRanks == false) {
-							for (RankEnum re : RankEnum.values()) {
-	        		    		String[] split;
-	        		    		String normname = null;
-	        		    		if (re.toString().contains("_")) {
-	        		    			split = re.toString().split("_");
-	        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
-	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
-	        		    		} else {
-	        		    			normname = Lib.capFirstLetter(re.toString());
-	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
-	        		    		}
-	        		    		
-	        		    	}
-						} else {
-							String[] rankSplit = Main.configRankString.split(",");
-							for (String re : rankSplit) {
-								String cString;
-								if ((re.contains("[")) && (re.contains("]"))) {
-									cString = re.substring(0, re.indexOf("["));
 								} else {
-									cString = re;
+									if (Main.useRanksInApplication) {
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rank!");
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "View Valid Ranks With: " + ChatColor.ITALIC + "/pr validranks");
+									}
+									
 								}
-	        		    		String[] split;
-	        		    		String normname = null;
-	        		    		if (cString.contains("_")) {
-	        		    			split = cString.split("_");
-	        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
-	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + cString.toUpperCase());
-	        		    		} else {
-	        		    			normname = Lib.capFirstLetter(cString);
-	        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + cString.toUpperCase());
-	        		    		}
-	        		    		
-	        		    	}
+								
+							} else {
+								
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr apply [<rank>]");
+								
+							}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
-        		    	Main.InfoHeader(p, "Player Reviewer Valid Ranks");
-        		    	return true;
-        		    	
-					//pr rate <player> <atmosphere> <originality> <terrain> <structure> <layout>
-					} else if ((args[0].equalsIgnoreCase("rate")) && (args.length > 1) && (p.hasPermission("pr.rate"))) {
 						
-						if (args.length == 7) {
-							
-							boolean successFlag = true;
-							
+					} else if(args[0].equalsIgnoreCase("help")) {
+						
+						if (p.hasPermission("pr.help")) {
+							Main.InfoHeader(p, "Player Reviewer");
+							try {
+								Class.forName("net.md_5.bungee.api.chat.TextComponent");
+								p.sendMessage(ChatColor.AQUA + "Hover over a command to see a description");
+								HoverText.HoverMessage(p, "&0> &2/pr validranks", Arrays.asList("&6Description:", "&cDisplays All Ranks That Can Be Applied For"));
+								HoverText.HoverMessage(p, "&0> &2/pr apply <rank>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+								HoverText.HoverMessage(p, "&0> &2/pr removeapplication <name>", Arrays.asList("&6Description:", "&cRemove An Open Application"));
+								HoverText.HoverMessage(p, "&0> &2/pr approval <player> <approve/deny>", Arrays.asList("&6Description:", "&cApprove Or Deny An Application"));
+								HoverText.HoverMessage(p, "&0> &2/pr ratings <player>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+								HoverText.HoverMessage(p, "&0> &2/pr rate <player> <criteria>", Arrays.asList("&6Description:", "&cSubmit A Rating To A Player's Open Application"));
+								HoverText.HoverMessage(p, "&0> &2/pr gotoplot <player>", Arrays.asList("&6Description:", "&cTeleports To Player's Open Application Plot"));
+								HoverText.HoverMessage(p, "&0> &2/pr version", Arrays.asList("&6Description:", "&cDisplays The Plugin Version And Author"));
+								HoverText.HoverMessage(p, "&0> &2/pr help", Arrays.asList("&6Description:", "&cOpens This Menu"));
+							} catch (ClassNotFoundException e) {
+								
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr validranks" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Displays All Ranks That Can Be Applied For");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr apply <rank>" + ChatColor.WHITE + " :: " + ChatColor.GOLD + "Submit An Application For A Rank");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr removeapplication <name>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Remove An Open Application");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr approval <player> <approve/deny>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Approve Or Deny An Application");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr ratings <player>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Submit An Application For A Rank");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr rate <player> <criteria>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Submit A Rating To A Player's Open Application");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr gotoplot <player>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Teleports To Player's Open Application Plot");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr version" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Displays The Plugin Version And Author");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr help" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Opens This Menu");
+							}
+							Main.InfoHeader(p, "Player Reviewer");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if (args[0].equalsIgnoreCase("apphelp")) {
+						
+						if (p.hasPermission("pr.apphelp")) {
+							Main.InfoHeader(p, "Application Submission Help");
+							if (Main.useRanksInApplication) {
+								if (useChunky) {
+									p.sendMessage(ChatColor.GRAY + "1. " + ChatColor.AQUA + "Select the corner chunks of your build with " + ChatColor.GOLD + "/pr pos1" + ChatColor.AQUA + " and " + ChatColor.GOLD + " /pr pos2");
+									p.sendMessage(ChatColor.GRAY + "2. " + ChatColor.AQUA + "Register up to " + ChatColor.GREEN + Config.maxCamCount() + ChatColor.AQUA + " camera positons for the screenshot generator with" + ChatColor.GOLD + "/pr cam");
+									p.sendMessage(ChatColor.GRAY + "3. " + ChatColor.AQUA + "Set any custom chunky parameters (using JSON formatting) with " + ChatColor.GOLD + "/pr setparam <json parameters>");
+									p.sendMessage(ChatColor.GRAY + "-  " + ChatColor.AQUA + "If you want to remove a parameter, use " + ChatColor.GOLD + "/pr removeparam <parameter name>");
+									p.sendMessage(ChatColor.GRAY + "-  " + ChatColor.AQUA + "If you want to clear all parameters, use " + ChatColor.GOLD + "/pr clearparams");
+									p.sendMessage(ChatColor.GRAY + "4. " + ChatColor.AQUA + "Once you are happy with the screenshot steup, use the command " + ChatColor.GOLD + "/pr apply <rank>" + ChatColor.AQUA + " to submit athe application");
+								} else {
+									p.sendMessage(ChatColor.GRAY + "1. " + ChatColor.AQUA + "Stand near your build and use the command " + ChatColor.GOLD + "/pr apply <rank>");
+								}
+							} else {
+								if (useChunky) {
+									p.sendMessage(ChatColor.GRAY + "1. " + ChatColor.AQUA + "Select the corner chunks of your build with " + ChatColor.GOLD + "/pr pos1" + ChatColor.AQUA + " and " + ChatColor.GOLD + "/pr pos2");
+									p.sendMessage(ChatColor.GRAY + "2. " + ChatColor.AQUA + "Register up to " + ChatColor.GREEN + Config.maxCamCount() + ChatColor.AQUA + " camera positons for the screenshot generator with" + ChatColor.GOLD + "/pr cam");
+									p.sendMessage(ChatColor.GRAY + "3. " + ChatColor.AQUA + "Set any custom chunky parameters (using JSON formatting) with " + ChatColor.GOLD + "/pr setparam <json parameters>");
+									p.sendMessage(ChatColor.GRAY + "   " + ChatColor.AQUA + "If you want to remove a parameter, use " + ChatColor.GOLD + "/pr removeparam <parameter name>");
+									p.sendMessage(ChatColor.GRAY + "   " + ChatColor.AQUA + "If you want to clear all parameters, use " + ChatColor.GOLD + "/pr clearparams");
+									p.sendMessage(ChatColor.GRAY + "4. " + ChatColor.AQUA + "Once you are happy with the screenshot steup, use the command " + ChatColor.GOLD + "/pr apply" + ChatColor.AQUA + " to submit athe application");
+								} else {
+									p.sendMessage(ChatColor.GRAY + "1. " + ChatColor.AQUA + "Stand near your build and use the command " + ChatColor.GOLD + "/pr apply");
+								}
+							}
+							Main.InfoHeader(p, "Application Submission Help");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if ((args[0].equalsIgnoreCase("validranks")) | (args[0].equalsIgnoreCase("vr")) | (args[0].equalsIgnoreCase("ranks"))) {
+						
+						if (p.hasPermission("pr.validranks")) {
+							Main.InfoHeader(p, "Player Reviewer Valid Ranks");
+							if (!Main.useConfigRanks) {
+								for (RankEnum re : RankEnum.values()) {
+		        		    		String[] split;
+		        		    		String normname = null;
+		        		    		if (re.toString().contains("_")) {
+		        		    			split = re.toString().split("_");
+		        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
+		        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
+		        		    		} else {
+		        		    			normname = Lib.capFirstLetter(re.toString());
+		        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + re);
+		        		    		}
+		        		    		
+		        		    	}
+							} else {
+								String[] rankSplit = Main.configRankString.split(",");
+								for (String re : rankSplit) {
+									String cString;
+									if ((re.contains("[")) && (re.contains("]"))) {
+										cString = re.substring(0, re.indexOf("["));
+									} else {
+										cString = re;
+									}
+		        		    		String[] split;
+		        		    		String normname = null;
+		        		    		if (cString.contains("_")) {
+		        		    			split = cString.split("_");
+		        		    			normname = Lib.capFirstLetter(split[0]) + " " + Lib.capFirstLetter(split[1]);
+		        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + cString.toUpperCase());
+		        		    		} else {
+		        		    			normname = Lib.capFirstLetter(cString);
+		        		    			p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + normname + ChatColor.WHITE + " :: " + ChatColor.RED + cString.toUpperCase());
+		        		    		}
+		        		    		
+		        		    	}
+							}
+	        		    	Main.InfoHeader(p, "Player Reviewer Valid Ranks");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					//pr rate <player> <atmosphere> <originality> <terrain> <structure> <layout>
+					} else if (args[0].equalsIgnoreCase("rate")) {
+						
+						if (p.hasPermission("pr.rate")) {
+							if (args.length == Config.getCriteria().size() + 1) {
+								
+								boolean successFlag = true;
+								
+								try {
+									
+									List<Integer> criteria = new ArrayList<Integer>();
+									for (int i = 2; i < args.length; i++) {
+										criteria.add(Lib.returnInRange(args[i]));
+									}
+									
+									if (Main.UseSQL == true) {
+										SQLLink.ratePlayer(p.getDisplayName(), args[1], criteria);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+									} else {
+										InvConfig.ratePlayer(p.getDisplayName(), args[1], criteria);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+									}
+									successFlag = false;
+									
+								} catch (NumberFormatException e) {
+									
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rating Value!");
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
+									successFlag = false;
+									
+								} catch (SQLException | FieldValueException se) {
+									
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does not Exist!");
+									successFlag = false;
+									
+								}
+								
+								if (successFlag) {
+									
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rating Value!");
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Valid Values Are 0 - 100 Inclusive");
+									
+								}
+								
+							} else {
+								
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <criteria 1> <criteria 2> ...");
+								
+							}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if ((args[0].equalsIgnoreCase("gotoplot")) | (args[0].equalsIgnoreCase("plot"))) {
+						
+						if (p.hasPermission("pr.gotoplot")) {
 							try {
 								
-								List<Integer> criteria = new ArrayList<Integer>();
-								for (int i = 2; i < args.length; i++) {
-									criteria.add(Lib.returnInRange(args[i]));
-								}
-								
 								if (Main.UseSQL == true) {
-									SQLLink.ratePlayer(p.getDisplayName(), args[1], criteria);
-									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+									p.teleport(SQLLink.getPlotLocation(args[1]));
 								} else {
-									InvConfig.ratePlayer(p.getDisplayName(), args[1], criteria);
-									p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+									p.teleport(InvConfig.getPlotLocation(args[1]));
 								}
-								successFlag = false;
-								
-							} catch (NumberFormatException e) {
-								
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
-								successFlag = false;
 								
 							} catch (SQLException | FieldValueException se) {
-								
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does not Exist!");
-								successFlag = false;
-								
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application Does Not Exist!");
 							}
-							
-							if (successFlag) {
-								
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rating Value!");
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Valid Values Are 0 - 100 Inclusive");
-								
-							}
-							return true;
-							
 						} else {
-							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <criteria 1> <criteria 2> ...");
-							
-						}
-						
-					
-					} else if (((args[0].equalsIgnoreCase("gotoplot")) | (args[0].equalsIgnoreCase("plot"))) && (p.hasPermission("pr.gotoplot"))) {
-						
-						try {
-							
-							if (Main.UseSQL == true) {
-								p.teleport(SQLLink.getPlotLocation(args[1]));
-							} else {
-								p.teleport(InvConfig.getPlotLocation(args[1]));
-							}
-							
-						} catch (SQLException | FieldValueException se) {
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application Does Not Exist!");
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
 						
 					//pr ratings <player>
@@ -274,7 +348,7 @@ public class Commands implements CommandExecutor {
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
+									p.sendMessage(ChatColor.LIGHT_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
 									p.sendMessage("");
 									for (String ra : Ratings.get(1)) {
 										String[] ratingValues = ra.split("-");
@@ -295,7 +369,7 @@ public class Commands implements CommandExecutor {
 									
 									p.sendMessage("");
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.DARK_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
+									p.sendMessage(ChatColor.LIGHT_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
 									p.sendMessage("");
 									for (String ra : Ratings.get(0)) {
 										String[] ratingValues = ra.split("-");
@@ -311,396 +385,537 @@ public class Commands implements CommandExecutor {
 									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
 								}
 								
-								return true;
 								
 							} catch (SQLException | FieldValueException e) {
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + " Does Not Exist!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
 							}
 							
 						} else {
 							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr viewratings <name>");
+							p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+							p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr viewratings <name>");
 							
 						}
 						
 					//pr approval <name> <approve/deny>	
-					} else if ((args[0].equalsIgnoreCase("approval")) && (args.length > 1) && (p.hasPermission("pr.approval"))) {
+					} else if (args[0].equalsIgnoreCase("approval")) {
 						
-						if (args.length == 3) {
-							
-							try {
-
-								if (args[2].equalsIgnoreCase("approve")) {
-									if (Main.UseSQL == true) {
-										String rank = SQLLink.getAppRank(args[1]);
-										if (Main.rankPlugin.equalsIgnoreCase("pex")) {
-											GroupPlugins.pexAssignGroup(p, rank);
-										} else if (Main.rankPlugin.equalsIgnoreCase("lp")) {
-											GroupPlugins.lpAssignGroup(p, rank);
+						if (p.hasPermission("pr.approval")) {
+							if (args.length == 3) {
+								try {
+									if (args[2].equalsIgnoreCase("approve")) {
+										if (Main.UseSQL == true) {
+											if (Main.useRanksInApplication) {
+												String rank = SQLLink.getAppRank(args[1]);
+												if (Main.rankPlugin.equalsIgnoreCase("pex")) {
+													GroupPlugins.pexAssignGroup(Bukkit.getPlayer(args[1]), rank);
+												} else if (Main.rankPlugin.equalsIgnoreCase("lp")) {
+													GroupPlugins.lpAssignGroup(Bukkit.getPlayer(args[1]), rank);
+												}
+											}
+											SQLLink.removeApp(args[1]);
+										} else {
+											if (Main.useRanksInApplication) {
+												String rank = InvConfig.getAppRank(args[1]);
+												if (Main.rankPlugin.equalsIgnoreCase("pex")) {
+													GroupPlugins.pexAssignGroup(Bukkit.getPlayer(args[1]), rank);
+												} else if (Main.rankPlugin.equalsIgnoreCase("lp")) {
+													GroupPlugins.lpAssignGroup(Bukkit.getPlayer(args[1]), rank);
+												}
+											}
+											InvConfig.removeApp(args[1]);
 										}
-										SQLLink.removeApp(args[1]);
-									} else {
-										String rank = InvConfig.getAppRank(args[1]);
-										if (Main.rankPlugin.equalsIgnoreCase("pex")) {
-											GroupPlugins.pexAssignGroup(p, rank);
-										} else if (Main.rankPlugin.equalsIgnoreCase("lp")) {
-											GroupPlugins.lpAssignGroup(p, rank);
+										
+										if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1]))) {
+											Bukkit.getPlayer(args[1]).sendMessage(Main.prefix + ChatColor.GOLD + "Your application was " + ChatColor.GREEN + "approved");
+											Main.appStatus.remove(Bukkit.getPlayer(args[1]).getUniqueId());
+										} else {
+											Main.appStatus.put(Bukkit.getPlayer(args[1]).getUniqueId(), Status.APPROVED);
 										}
-										InvConfig.removeApp(args[1]);
-									}
-									//TODO: Send message of application approval to player
-									
-								} else if (args[2].equalsIgnoreCase("deny")) {
-									
-									if (Main.UseSQL == true) {
-										SQLLink.removeApp(args[1]);
+										
+									} else if (args[2].equalsIgnoreCase("deny")) {
+										
+										if (Main.UseSQL == true) {
+											SQLLink.removeApp(args[1]);
+										} else {
+											InvConfig.removeApp(args[1]);
+										}
+										
+										if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1]))) {
+											Bukkit.getPlayer(args[1]).sendMessage(Main.prefix + ChatColor.GOLD + "Your application was " + ChatColor.DARK_RED + "denied");
+											Main.appStatus.remove(Bukkit.getPlayer(args[1]).getUniqueId());
+										} else {
+											Main.appStatus.put(Bukkit.getPlayer(args[1]).getUniqueId(), Status.DENIED);
+										}
+										
 									} else {
-										InvConfig.removeApp(args[1]);
+										
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Command Syntax!");
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>");
+										
 									}
-									//TODO: Send message of application denial to player
 									
-								} else {
-									
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command Syntax!");
-									p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>");
-									
+								} catch (SQLException e) {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Player Name: " + args[1]);
+								} catch (InvalidGroupException e) {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rank In Application!");
+								} catch (FieldValueException | ClassNotFoundException e) {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
 								}
 								
-							} catch (SQLException | FieldValueException e) {
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Player Name: " + args[1]);
-							} catch (InvalidGroupException e) {
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Rank In Application!");
+							} else {
+								
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>	");
+								
 							}
-							
 						} else {
-							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr approval <name> <approve/deny>	");
-							
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
 						
 					//pr removeapplication <name>
-					} else if (((args[0].equalsIgnoreCase("removeapplication")) | (args[0].equalsIgnoreCase("ra")) | (args[0].equalsIgnoreCase("remapp"))) && (p.hasPermission("pr.removeapplication"))) {
+					} else if ((args[0].equalsIgnoreCase("removeapplication")) | (args[0].equalsIgnoreCase("ra")) | (args[0].equalsIgnoreCase("remapp"))) {
 						
-						if (args.length == 2) {
-							
-							try {
-								 if (Main.UseSQL == true) {
-									 SQLLink.removeApp(args[1]);
-									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
-								 } else {
-									 InvConfig.removeApp(args[1]);
-									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
-								 }
+						if (p.hasPermission("pr.removeapplication")) {
+							if (args.length == 2) {
 								
-							} catch (SQLException | FieldValueException e) {
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Application For " + args[1] + "Does Not Exist!");
+								try {
+									 if (Main.UseSQL == true) {
+										 SQLLink.removeApp(args[1]);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
+									 } else {
+										 InvConfig.removeApp(args[1]);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
+									 }
+									
+								} catch (SQLException | ClassNotFoundException | FieldValueException e) {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
+								}
+								
+							} else {
+								
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr removeapplication <name>");
+								
 							}
-							
 						} else {
-							
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr removeapplication <name>");
-							
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
 						
-					} else if ((args[0].equalsIgnoreCase("version")) && (p.hasPermission("pr.version"))) {
-        				
-            			String version = Bukkit.getServer().getPluginManager().getPlugin("PlayerReviewer").getDescription().getVersion();
-            			
-            			Main.InfoHeader(p, "Player Reviewer Version Info");
-            			p.sendMessage("");
-        		    	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Version Number " + ChatColor.WHITE + ":: " + ChatColor.RED + version);
-        		    	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Author " + ChatColor.WHITE + ":: " + ChatColor.RED + "EngineersBox");
-        		    	p.sendMessage("");
-        		    	Main.InfoHeader(p, "Player Reviewer Version Info");
-					
-					} else if ((args[0].equalsIgnoreCase("pos1")) && (p.hasPermission("pr.pos1"))) {
 						
-		                if (Main.positions.get(tHash) != null) {
-		                	
-		                    CoordsObject tpos = Main.positions.get(tHash);
-		                    tpos.setPosition1(p.getLocation());
-		                    Main.positions.put(tHash,tpos);
-		                    Main.chunkList.put(p.getUniqueId(), getChunks(tHash));
-		                    
-		                } else {
-		                	
-		                    CoordsObject tpos = new CoordsObject();
-		                    tpos.setPosition1(p.getLocation());
-		                    Main.positions.put(tHash, tpos);
-		                }
-		                
-		                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 1 registered");
-
-		            } else if ((args[0].equalsIgnoreCase("pos2")) && (p.hasPermission("pr.pos2"))) {
-		            	
-		                if (Main.positions.get(tHash) != null) {
-		                	
-		                    CoordsObject tpos = Main.positions.get(tHash);
-		                    tpos.setPosition2(p.getLocation());
-		                    Main.positions.put(tHash, tpos);
-		                    Main.chunkList.put(p.getUniqueId(), getChunks(tHash));
-		                    
-		                } else {
-		                	
-		                    CoordsObject tpos = new CoordsObject();
-		                    tpos.setPosition2(p.getLocation());
-		                    Main.positions.put(tHash, tpos);
-		                    
-		                }
-		                
-		                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 2 registered");
-		                
-		            } else if ((args[0].equalsIgnoreCase("cam")) && (p.hasPermission("pr.cam"))) {
-		            	
-		            	try {
-		            		
-		            		MaxSizeHashMap<String, CameraObject> cams = Main.cameras.get(p.getUniqueId());
-		            		
-		            		if (cams != null) {
-		            			int camCount = cams.size();
-		            			
-		            			if (camCount < cams.maxSize()) {
-				            		camCount += 1;
-				            		
-				            		if (cams.get(tHash + "_" + camCount) != null) {
-					                	
-					                    CameraObject cam = cams.get(tHash + "_" + camCount);
-					                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
-					                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
-					                    cam.position.setX(p.getLocation().getX());
-					                    cam.position.setY(p.getLocation().getY());
-					                    cam.position.setZ(p.getLocation().getZ());
+					} else if (args[0].equalsIgnoreCase("version")) {
+        				
+						if (p.hasPermission("pr.version")) {
+							String version = Bukkit.getServer().getPluginManager().getPlugin("PlayerReviewer").getDescription().getVersion();
+	            			
+	            			Main.InfoHeader(p, "Player Reviewer Version Info");
+	            			p.sendMessage("");
+	        		    	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Version Number " + ChatColor.WHITE + ":: " + ChatColor.RED + version);
+	        		    	p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Author " + ChatColor.WHITE + ":: " + ChatColor.RED + "EngineersBox");
+	        		    	p.sendMessage("");
+	        		    	Main.InfoHeader(p, "Player Reviewer Version Info");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if (args[0].equalsIgnoreCase("status")) {
+						
+						if (p.hasPermission("pr.status")) {
+							Status status = Main.appStatus.get(p.getUniqueId());
+							
+							if (status != null) {
+								switch(Main.appStatus.get(p.getUniqueId())) {
+								
+								case APPROVED:
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application status: " + ChatColor.GREEN + "approved");
+									break;
+									
+								case DENIED:
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application status: " + ChatColor.RED + "denied");
+									break;
+									
+								case AWAITING_REVIEW:
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Application status: " + ChatColor.RED + "awaitng review");
+									break;
+									
+								default:
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application for " + p.getName() + " does not exist");
+									break;
+							
+								}
+							} else {
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application for " + p.getName() + " does not exist");
+							}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if (args[0].equalsIgnoreCase("pos1")) {
+						
+						if (p.hasPermission("pr.pos1")) {
+							if (useChunky) {
+								if (Main.positions.get(tHash) != null) {
+				                	
+				                    CoordsObject tpos = Main.positions.get(tHash);
+				                    tpos.setPosition1(p.getLocation());
+				                    Main.positions.put(tHash,tpos);
+				                    Main.chunkList.put(p.getUniqueId(), getChunks(tHash));
 				                    
-										cams.put(tHash + "_" + camCount, cam);
-										Main.cameras.put(p.getUniqueId(), cams);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
-					                    
-					                } else {
-					                	
-					                    CameraObject cam = new CameraObject(tHash + "_" + camCount);
-					                    cam.orientation = new Orientation();
-					                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
-					                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
-					                    cam.position = new Position();
-					                    cam.position.setX(p.getLocation().getX());
-					                    cam.position.setY(p.getLocation().getY());
-					                    cam.position.setZ(p.getLocation().getZ());
-					                    
-					                    cams.put(tHash + "_" + camCount, cam);
-										Main.cameras.put(p.getUniqueId(), cams);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
-					                    
-					                }
-					              
-				            	} else {
-				            		p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count " + Config.maxCamCount() + " reached!");
-				            	}
-		            			
-		            		} else {
-		            			
-		            			cams = new MaxSizeHashMap<String, CameraObject>(Config.maxCamCount());
-		            			
-		            			CameraObject cam = new CameraObject(tHash + "_1");
-			                    cam.orientation = new Orientation();
-			                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
-			                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
-			                    cam.position = new Position();
-			                    cam.position.setX(p.getLocation().getX());
-			                    cam.position.setY(p.getLocation().getY());
-			                    cam.position.setZ(p.getLocation().getZ());
-			                    
-			                    cams.put(tHash + "_1", cam);
-								Main.cameras.put(p.getUniqueId(), cams);
-								p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera 1 registered");
-		            			
-		            		}
-		            		
-		            	} catch (HashMapSizeOverflow e) {
-		            		p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Max camera count " + Config.maxCamCount() + " reached!");
+				                } else {
+				                	
+				                    CoordsObject tpos = new CoordsObject();
+				                    tpos.setPosition1(p.getLocation());
+				                    Main.positions.put(tHash, tpos);
+				                }
+				                
+				                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 1 registered");
+							} else {
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+							}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+		            } else if (args[0].equalsIgnoreCase("pos2")) {
+		            	
+		            	if (p.hasPermission("pr.pos2")) {
+		            		if (useChunky) {
+				                if (Main.positions.get(tHash) != null) {
+				                	
+				                    CoordsObject tpos = Main.positions.get(tHash);
+				                    tpos.setPosition2(p.getLocation());
+				                    Main.positions.put(tHash, tpos);
+				                    Main.chunkList.put(p.getUniqueId(), getChunks(tHash));
+				                    
+				                } else {
+				                	
+				                    CoordsObject tpos = new CoordsObject();
+				                    tpos.setPosition2(p.getLocation());
+				                    Main.positions.put(tHash, tpos);
+				                    
+				                }
+				                
+				                p.sendMessage(Main.prefix + ChatColor.AQUA + "Position 2 registered");
+			            	} else {
+			            		p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+			            	}
+		            	} else {
+		            		p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 		            	}
 		            	
-		            } else if ((args[0].equalsIgnoreCase("get")) && (p.hasPermission("pr.get"))) {
+		            } else if (args[0].equalsIgnoreCase("cam")) {
 		            	
-	            		String pos1 = ChatColor.DARK_RED + "Not registered ";
-	            		String pos2 = ChatColor.DARK_RED + "Not registered ";
-	            		String chunks = ChatColor.DARK_RED + "Not registered ";
-	            		List<String> cams = new ArrayList<String>();
-	            		cams.add(ChatColor.DARK_RED + "Not registered");
-	            		CoordsObject pos = Main.positions.get(tHash);
-	            		
-	            		if (pos != null) {
-	            			if (pos.getPosition1() != null) {
-	            				pos1 = pos.getPosition1().toString();
-	            			}
-	            			
-	            			if (pos.getPosition2() != null) {
-		            			pos2 = pos.getPosition2().toString();
-		            		}
-	            			
-	            			if (getChunks(tHash) != null) {
-		            			chunks = getChunks(tHash).toString();
-		            		}
-	            		}
-	            		
-	            		if (Main.cameras.get(p.getUniqueId()) != null) {
-	            			cams.clear();
-	            			
-	            			MaxSizeHashMap<String, CameraObject> cCams = Main.cameras.get(p.getUniqueId());
-	            			for (int i = 1; i <= cCams.maxSize(); i++) {
-		            			if (cCams.get(tHash + "_" + i) != null) {
-		            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Cam " + i + ":" + ChatColor.GREEN + " Registered");
-		            			} else {
-		            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Cam " + i + ":" + ChatColor.DARK_RED + " Not registered");
-		            			}
-		            		}
-	            		}
-	            		
-            			p.sendMessage(Main.prefix + ChatColor.GOLD + "Pos 1: " + ChatColor.AQUA + pos1);
-		                p.sendMessage(Main.prefix + ChatColor.GOLD + "Pos 2: " + ChatColor.AQUA + pos2);
-		                p.sendMessage(Main.prefix + ChatColor.GOLD + "Chunks: " + ChatColor.AQUA + chunks);
-		                if (cams.size() == 1) {
-		                	p.sendMessage(Main.prefix + ChatColor.GOLD + "Cameras: " + cams.get(0));
-		                } else {
-		                	p.sendMessage(Main.prefix + ChatColor.GOLD + "Cameras:");
-		                	for (String cam : cams) {
-			                	p.sendMessage(cam);
-			                }
-		                }
-					
-	            } else if (((args[0].equalsIgnoreCase("setparam")) || (args[0].equalsIgnoreCase("pr"))) && (p.hasPermission("pr.setparam"))) {
-					
-					if (args.length >= 3) {
-						
-						List<String> tempArgs = Arrays.asList(args);
-						
-						String param = tempArgs.get(1);
-						String value = tempArgs.get(2);
-						
-						if (args.length > 3) {
-							for (String arg : tempArgs.subList(3, tempArgs.size())) {
-								value += " " + arg;
-							}
-						}
-						
-						JSONParameter jParam;
-						String playerMsg = "Parameter ";
-						
-						if (Main.paramMap.containsKey(p.getUniqueId())) {
-							jParam = Main.paramMap.get(p.getUniqueId());
-							if (jParam.getParams().contains(param)) {
-								jParam.replaceValue(param, value);
-								playerMsg += "changed";
-							} else {
-								jParam.addParamValue(param, value);
-								playerMsg += "added";
-							}
-						} else {
-							jParam = new JSONParameter();
-							jParam.addParamValue(param, value);
-							playerMsg += "added";
-						}
-						
-						Main.paramMap.put(p.getUniqueId(), jParam);
-						p.sendMessage(Main.prefix + ChatColor.AQUA + playerMsg);
-						
-					} else {
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Not enough arguments!");
-					}
-					
-				} else if (((args[0].equalsIgnoreCase("viewparams")) || (args[0].equalsIgnoreCase("vp"))) && (p.hasPermission("pr.viewparams"))) {
-					
-					JSONParameter jParam = Main.paramMap.get(p.getUniqueId());
-					Gson gson = new Gson();
-					
-					if (args.length == 2) {
-						if (jParam != null) {
-							if ((args[1].equalsIgnoreCase("raw")) && (p.hasPermission("pr.raw"))) {
-								p.sendMessage("");
-								Main.InfoHeader(p, "Render Service Parameters");
-								p.sendMessage(ChatColor.GRAY + jParam.toString());
-								Main.InfoHeader(p, "Render Service Parameters");
-								p.sendMessage("");
-							} else if ((args[1].equalsIgnoreCase("list")) && (p.hasPermission("pr.list"))) {
-
-								int bracketCount = 0;
-								String spaces = "";
-								String[] jString = gson.toJson(jParam.toString()).replaceAll("[,\"\\\\\"]", "").split("\\s");
-								List<String> pMsg = new ArrayList<String>();
-								
-								for (int i = 0; i < jString.length; i++) {
-									if (jString[i].contains("{")) {
-										bracketCount += 1;
-									} else if (jString[i].contains("}")) {
-										bracketCount -= 1;
-									}
+		            	if (p.hasPermission("pr.cam")) {
+		            		if (Config.useChunky()) {
+			            		try {
+				            		
+				            		MaxSizeHashMap<String, CameraObject> cams = Main.cameras.get(p.getUniqueId());
+				            		
+				            		if (cams != null) {
+				            			int camCount = cams.size();
+				            			
+				            			if (camCount < cams.maxSize()) {
+						            		camCount += 1;
+						            		
+						            		if (cams.get("camera_" + camCount) != null) {
+							                	
+							                    CameraObject cam = cams.get("camera_" + camCount);
+							                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+							                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+							                    cam.position.setX(p.getLocation().getX());
+							                    cam.position.setY(p.getLocation().getY());
+							                    cam.position.setZ(p.getLocation().getZ());
+						                    
+												cams.put("camera_" + camCount, cam);
+												Main.cameras.put(p.getUniqueId(), cams);
+												p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
+							                    
+							                } else {
+							                	
+							                    CameraObject cam = new CameraObject("camera_" + camCount);
+							                    cam.orientation = new orientation();
+							                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+							                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+							                    cam.position = new position();
+							                    cam.position.setX(p.getLocation().getX());
+							                    cam.position.setY(p.getLocation().getY());
+							                    cam.position.setZ(p.getLocation().getZ());
+							                    
+							                    cams.put("camera_" + camCount, cam);
+												Main.cameras.put(p.getUniqueId(), cams);
+												p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
+							                    
+							                }
+							              
+						            	} else {
+						            		p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Max camera count " + Config.maxCamCount() + " reached!");
+						            	}
+				            			
+				            		} else {
+				            			
+				            			cams = new MaxSizeHashMap<String, CameraObject>(Config.maxCamCount());
+				            			
+				            			CameraObject cam = new CameraObject("camera_1");
+					                    cam.orientation = new orientation();
+					                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
+					                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+					                    cam.position = new position();
+					                    cam.position.setX(p.getLocation().getX());
+					                    cam.position.setY(p.getLocation().getY());
+					                    cam.position.setZ(p.getLocation().getZ());
+					                    
+					                    cams.put("camera_1", cam);
+										Main.cameras.put(p.getUniqueId(), cams);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera 1 registered");
+				            			
+				            		}
+				            		
+				            	} catch (HashMapSizeOverflow e) {
+				            		p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Max camera count " + Config.maxCamCount() + " reached!");
+				            	}
+			            	} else {
+			            		p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+			            	}
+		            	} else {
+		            		p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+		            	}
+		            	
+		            } else if ((args[0].equalsIgnoreCase("chunkySettings")) || (args[0].equalsIgnoreCase("cs"))) {
+		            	if (p.hasPermission("pr.chunkySettings")) {
+		            		if (useChunky) {
+			            		String pos1 = ChatColor.DARK_RED + "Not registered ";
+			            		String pos2 = ChatColor.DARK_RED + "Not registered ";
+			            		String chunks = ChatColor.DARK_RED + "Not registered ";
+			            		List<String> cams = new ArrayList<String>();
+			            		cams.add(ChatColor.DARK_RED + "Not registered");
+			            		CoordsObject pos = Main.positions.get(tHash);
+			            		
+			            		if (pos != null) {
+			            			if (pos.getPosition1() != null) {
+			            				pos1 = pos.getPosition1().toString();
+			            			}
+			            			
+			            			if (pos.getPosition2() != null) {
+				            			pos2 = pos.getPosition2().toString();
+				            		}
+			            			
+			            			if (getChunks(tHash) != null) {
+				            			chunks = getChunks(tHash).toString();
+				            		}
+			            		}
+			            		
+			            		if (Main.cameras.get(p.getUniqueId()) != null) {
+			            			cams.clear();
+			            			
+			            			MaxSizeHashMap<String, CameraObject> cCams = Main.cameras.get(p.getUniqueId());
+			            			for (int i = 1; i <= cCams.maxSize(); i++) {
+				            			if (cCams.get("camera_" + i) != null) {
+				            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Camera " + i + ":" + ChatColor.GREEN + " Registered");
+				            			} else {
+				            				cams.add(ChatColor.DARK_GRAY + "- " + ChatColor.AQUA + "Camera " + i + ":" + ChatColor.DARK_RED + " Not registered");
+				            			}
+				            		}
+			            		}
+			            		
+		            			p.sendMessage(Main.prefix + ChatColor.GOLD + "Pos 1: " + ChatColor.AQUA + pos1);
+				                p.sendMessage(Main.prefix + ChatColor.GOLD + "Pos 2: " + ChatColor.AQUA + pos2);
+				                p.sendMessage(Main.prefix + ChatColor.GOLD + "Chunks: " + ChatColor.AQUA + chunks);
+				                if (cams.size() == 1) {
+				                	p.sendMessage(Main.prefix + ChatColor.GOLD + "Cameras: " + cams.get(0));
+				                } else {
+				                	p.sendMessage(Main.prefix + ChatColor.GOLD + "Cameras:");
+				                	for (String cam : cams) {
+					                	p.sendMessage(cam);
+					                }
+				                }
+			            	} else {
+			            		p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+			            	}
+		            	} else {
+		            		p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+		            	}
+		            	
+		            } else if ((args[0].equalsIgnoreCase("setparam")) || (args[0].equalsIgnoreCase("pr"))) {
+						if (p.hasPermission("pr.setparam")) {
+							if (useChunky) {
+								if (args.length >= 3) {
 									
-									String tempSpaces = "";
-									for (int j = 0; j < bracketCount; j++) {
-										tempSpaces += "  ";
-									}
-									spaces = tempSpaces;
+									List<String> tempArgs = Arrays.asList(args);
+									Gson gson = new Gson();
+									String param = gson.toJson(tempArgs.get(1).replace(":", ""));
+									param = param.substring(1, param.length() - 1);
+									String value = tempArgs.get(2);
 									
-									if (jString[i].endsWith(":")) {
-										if (jString[i + 1].equals("{")) {
-											pMsg.add(ChatColor.DARK_GRAY + spaces + "- " + ChatColor.GREEN + jString[i].replace(":", ""));
-										} else {
-											pMsg.add(ChatColor.DARK_GRAY + spaces + "- " + ChatColor.GREEN + jString[i].replace(":", "") + ChatColor.WHITE + " :: " + ChatColor.RED + jString[i + 1]);
+									if (args.length > 3) {
+										for (String arg : tempArgs.subList(3, tempArgs.size())) {
+											value += " " + arg;
 										}
 									}
+									
+									value = gson.toJson(value);
+									value = value.substring(1, value.length() - 1);
+									
+									JSONParameter jParam;
+									String playerMsg = "Parameter ";
+									
+									if (Main.paramMap.containsKey(p.getUniqueId())) {
+										jParam = Main.paramMap.get(p.getUniqueId());
+										if (jParam.getParams().contains(param)) {
+											jParam.replaceValue(param, value);
+											playerMsg += "changed";
+										} else {
+											jParam.addParamValue(param, value);
+											playerMsg += "added";
+										}
+									} else {
+										jParam = new JSONParameter();
+										jParam.addParamValue(param, value);
+										playerMsg += "added";
+									}
+									
+									Main.paramMap.put(p.getUniqueId(), jParam);
+									p.sendMessage(Main.prefix + ChatColor.AQUA + playerMsg);
+									
+								} else {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Not enough arguments!");
 								}
-								
-								p.sendMessage("");
-								Main.InfoHeader(p, "Render Service Parameters");
-								for (String msg : pMsg) {
-									p.sendMessage(msg);
+			            	} else {
+			            		p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+			            	}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+		            	
+					} else if ((args[0].equalsIgnoreCase("removeparam")) || (args[0].equalsIgnoreCase("rp"))) {
+						if (p.hasPermission("pr.removeparam")) {
+							if (useChunky) {
+								JSONParameter jParam;
+								if (Main.paramMap.containsKey(p.getUniqueId())) {
+									jParam = Main.paramMap.get(p.getUniqueId());
+									if (jParam.getParams().contains(args[1])) {
+										int paramIndex = jParam.getParams().indexOf(args[1]);
+										jParam.getParams().remove(paramIndex);
+										jParam.getValues().remove(paramIndex);
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameter removed");
+									} else {
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Parameter \"" + args[1] + "\" not set");
+									}
+								} else {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "No parameters applied");
 								}
-								Main.InfoHeader(p, "Render Service Parameters");
-								p.sendMessage("");
 							} else {
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid display type");
-								p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr viewparams <raw/list>");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
 							}
 						} else {
-							p.sendMessage(Main.prefix + ChatColor.AQUA + "No parameters set");
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
-					} else {
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid display type");
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr viewparams <raw/list>");
-					}
-				
-				} else if (((args[0].equalsIgnoreCase("clearparams")) || (args[0].equalsIgnoreCase("cp"))) && (p.hasPermission("pr.clearparams"))) {
-					
-					if (args.length == 1) {
-						p.sendMessage(Main.prefix + ChatColor.BLUE + "Are you sure you want to clear render parameters?");
-						p.sendMessage(Main.prefix + ChatColor.GREEN + "CONFIRM" + ChatColor.BLUE + " clearing paramters with /pr clearparams confirm");
-						p.sendMessage(Main.prefix + ChatColor.RED + "DENY" + ChatColor.BLUE + " clearing paramters with /pr clearparams deny");
-						Main.atConfirm = true;
-					} else if ((args.length == 2) && (Main.atConfirm == true)) {
-						if (args[1].equalsIgnoreCase("confirm")) {
-							Main.paramMap.remove(p.getUniqueId());
-							p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameters cleared");
-							Main.atConfirm = false;
-						} else if (args[1].equalsIgnoreCase("deny")) {
-							p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameters not cleared");
-							Main.atConfirm = false;
+						
+						
+					} else if ((args[0].equalsIgnoreCase("viewparams")) || (args[0].equalsIgnoreCase("vp"))) {
+						if (p.hasPermission("pr.viewparams")) {
+							if (useChunky) {
+								JSONParameter jParam = Main.paramMap.get(p.getUniqueId());
+								Gson gson = new Gson();
+								
+								if (args.length == 2) {
+									if (jParam != null) {
+										if ((args[1].equalsIgnoreCase("raw")) && (p.hasPermission("pr.raw"))) {
+											p.sendMessage("");
+											Main.InfoHeader(p, "Render Service Parameters");
+											p.sendMessage(ChatColor.GRAY + jParam.toString());
+											Main.InfoHeader(p, "Render Service Parameters");
+											p.sendMessage("");
+										} else if ((args[1].equalsIgnoreCase("list")) && (p.hasPermission("pr.list"))) {
+			
+											int bracketCount = 0;
+											String spaces = "";
+											String[] jString = gson.toJson(jParam.toString()).replaceAll("[,\"\\\\\"]", "").split("\\s");
+											List<String> pMsg = new ArrayList<String>();
+											
+											for (int i = 0; i < jString.length; i++) {
+												if (jString[i].contains("{")) {
+													bracketCount += 1;
+												} else if (jString[i].contains("}")) {
+													bracketCount -= 1;
+												}
+												
+												String tempSpaces = "";
+												for (int j = 0; j < bracketCount; j++) {
+													tempSpaces += "  ";
+												}
+												spaces = tempSpaces;
+												
+												if (jString[i].endsWith(":")) {
+													if (jString[i + 1].equals("{")) {
+														pMsg.add(ChatColor.DARK_GRAY + spaces + "- " + ChatColor.GREEN + jString[i].replace(":", ""));
+													} else {
+														pMsg.add(ChatColor.DARK_GRAY + spaces + "- " + ChatColor.GREEN + jString[i].replace(":", "") + ChatColor.WHITE + " :: " + ChatColor.RED + jString[i + 1]);
+													}
+												}
+											}
+											
+											p.sendMessage("");
+											Main.InfoHeader(p, "Render Service Parameters");
+											for (String msg : pMsg) {
+												p.sendMessage(msg);
+											}
+											Main.InfoHeader(p, "Render Service Parameters");
+											p.sendMessage("");
+										} else {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid display type");
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr viewparams <raw/list>");
+										}
+									} else {
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "No parameters set");
+									}
+								} else {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid display type");
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr viewparams <raw/list>");
+								}
+							} else {
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+							}
 						} else {
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid syntax");
-							p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr clearparams <confirm/deny>");
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
+				
+					} else if ((args[0].equalsIgnoreCase("clearparams")) || (args[0].equalsIgnoreCase("cp"))) {
+						if ((p.hasPermission("pr.clearparams"))) {
+							if (useChunky) {
+								if (args.length == 1) {
+									p.sendMessage(Main.prefix + ChatColor.BLUE + "Are you sure you want to clear render parameters?");
+									p.sendMessage(Main.prefix + ChatColor.GREEN + "CONFIRM" + ChatColor.BLUE + " clearing paramters with /pr clearparams confirm");
+									p.sendMessage(Main.prefix + ChatColor.RED + "DENY" + ChatColor.BLUE + " clearing paramters with /pr clearparams deny");
+									Main.atConfirm = true;
+								} else if ((args.length == 2) && (Main.atConfirm == true)) {
+									if (args[1].equalsIgnoreCase("confirm")) {
+										Main.paramMap.remove(p.getUniqueId());
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameters cleared");
+										Main.atConfirm = false;
+									} else if (args[1].equalsIgnoreCase("deny")) {
+										p.sendMessage(Main.prefix + ChatColor.AQUA + "Parameters not cleared");
+										Main.atConfirm = false;
+									} else {
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid syntax");
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr clearparams <confirm/deny>");
+									}
+								} else {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid syntax");
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr clearparams");
+								}
+							} else {
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Chunky usage not enabled, enable it in the config");
+							}
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+		
 					} else {
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid syntax");
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Usage:" + ChatColor.ITALIC + "/pr clearparams");
+							
+						p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Command!");
+						p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "View Valid Commands With: " + ChatColor.ITALIC + "/pr help");
+							
 					}
-					
-				} else {
-						
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "Invalid Command!");
-						p.sendMessage(Main.prefix + ChatColor.DARK_PURPLE + "View Valid Commands With: " + ChatColor.ITALIC + "/pr help");
-						
-				}
 					
 				}
 				
