@@ -73,6 +73,9 @@ public class SQLLink {
 			String tableName = Config.getTableName();
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
+			if (!rs.next()) {
+				throw new SQLException();
+			}
 			DataSet retdata = new DataSet(rs);
 			
 			if (Main.useRanksInApplication) {
@@ -100,6 +103,9 @@ public class SQLLink {
 			String tableName = Config.getTableName();
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
+			if (!rs.next()) {
+				throw new SQLException();
+			}
 			DataSet retdata = new DataSet(rs);
 			return retdata.getPlotLoc();
 			
@@ -109,17 +115,19 @@ public class SQLLink {
 		
 	}
 	
-	public static void removeApp(String name) throws SQLException {
-		
+	public static void removeApp(String name) throws SQLException, ClassNotFoundException {
 		try {
-			
 			String sql;
 			String tableName = Config.getTableName();
-			sql = "DELETE FROM " + tableName + " WHERE name = '" + name + "';";
-			Main.MySQL.noRetUpdate(sql);
-			
-		} catch (SQLException | ClassNotFoundException se) {
-			throw new SQLException(se);
+			sql = "DELETE FROM " + tableName + " WHERE `name` = '" + name + "';";
+			int ret = Main.MySQL.updateSQL(sql);
+			if (ret == 0) {
+				throw new ClassNotFoundException();
+			}
+		} catch (SQLException e) {
+			throw new SQLException();
+		} catch (ClassNotFoundException e) {
+			throw new ClassNotFoundException();
 		}
 		
 	}
@@ -136,6 +144,9 @@ public class SQLLink {
 			
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
+			if (!rs.next()) {
+				throw new SQLException();
+			}
 			DataSet retdata = new DataSet(rs);
 			
 			totalratings = retdata.getTotalRatings() + 1;
@@ -196,10 +207,12 @@ public class SQLLink {
 				String tableName = Config.getTableName();
 				sql = "SELECT rank FROM " + tableName + " WHERE name = '" + name + "';";
 				ResultSet rs = Main.MySQL.querySQL(sql);
-				rs.next();
-				
-				rank = rs.getString("rank");
-				return rank;
+				if (rs.next()) {
+					rank = rs.getString("rank");
+					return rank;
+				} else {
+					throw new SQLException();
+				}
 				
 			} catch (SQLException | ClassNotFoundException se) {
 				throw new SQLException(se);
