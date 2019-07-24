@@ -12,9 +12,13 @@ commands:
         description: Displays All Help Options For Player Reviewer
         usage: /pr help
         permission: pr.help
+    pr apphelp:
+        description: Displays application submission help
+        usage: /pr apphelp
+        permission: pr.apphelp
     pr apply:
         description: Allow Player To Apply For Rank Reviewal
-        usage: /pr apply <rank>
+        usage: /pr apply [<rank>]
         permission: pr.apply
     pr validranks:
         description: Displays All Valid Ranks
@@ -47,6 +51,10 @@ commands:
         description: Allows Player To View Plugin Version Information
         usage: /pr version
         permission: pr.version
+    pr status:
+        description: Allows Player To View Application Status
+        usage: /pr status
+        permission: pr.status
     pr pos1:
         description: Register position 1
         usage: /pr pos1
@@ -59,28 +67,30 @@ commands:
         description: Register a camera
         usage: /pr cam
         permission: pr.cam
-    pr get:
-        description: Returns position and chunk details
-        usage: /pr get
-        permission: pr.get
-    rs:
-        description: Returns position and chunk details
-        usage: /rs
-        permission: rs.use
-    rs setparam:
-        description: Returns position and chunk details
-        usage: /rs setparam <parameter> <value>
-        permission: rs.setparam
+    pr chunkySettings:
+        description: Returns position, chunk and parameter details
+        usage: /pr chunkySettings
+        permission: pr.chunkySettings
+        aliases: [cs]
+    pr setparam:
+        description: Set a chunky JSON parameter
+        usage: /pr setparam <json paramters>
+        permission: pr.setparam
         aliases: [sp]
-    rs viewparams:
-        description: Returns position and chunk details
-        usage: /rs viewparams <raw/list>
-        permission: rs.viewparams
+    pr removeparam:
+        description: Remove a chunky JSON parameter
+        usage: /pr removeparam <parameter name>
+        permission: pr.removeparam
+        aliases: [rp]
+    pr viewparams:
+        description: View currently set chunky JSON parameters
+        usage: /pr viewparams <raw/list>
+        permission: pr.viewparams
         aliases: [vp]
-    rs clearparams:
-        description: Returns position and chunk details
-        usage: /rs clearparams [<confirm/deny>]
-        permission: rs.clearparams
+    pr clearparams:
+        description: Clear all currently set chunky JSON parameters (requires confirmation)
+        usage: /pr clearparams [<confirm/deny>]
+        permission: pr.clearparams
         aliases: [cp]
 permissions:
     pr.*:
@@ -88,6 +98,7 @@ permissions:
         children:
             pr.use: true
             pr.help: true
+            pr.apphelp: true
             pr.apply: true
             pr.validranks: true
             pr.rate: true
@@ -96,16 +107,17 @@ permissions:
             pr.approval: true
             pr.removeapplication: true
             pr.version: true
+            pr.status: true
             pr.pos1: true
             pr.pos2: true
             pr.cam: true
-            pr.get: true
-            rs.use: true
-            rs.setparam: true
-            rs.viewparams: true
-            rs.clearparams: true
-            rs.list: true
-            rs.raw: true
+            pr.chunkySettings: true
+            pr.setparam: true
+            pr.removeparam: true
+            pr.viewparams: true
+            pr.clearparams: true
+            pr.list: true
+            pr.raw: true
     pr.use:
         description: Allows The Use Of The pr Command
         default: true
@@ -114,6 +126,9 @@ permissions:
         default: true
     pr.apply:
         description: Allow Player To Apply For Rank Reviewal
+        default: true
+    pr.apphelp:
+        description: Allows the use of /pr apphelp
         default: true
     pr.validranks:
         description: Displays All Valid Ranks
@@ -136,6 +151,9 @@ permissions:
     pr.version:
         description: Allows Player To View Plugin Version Information
         default: true
+    pr.status:
+        description: Allows the use of /pr status
+        default: true
     pr.pos1:
         description: Allows the use of /pr pos1
         default: true
@@ -145,24 +163,24 @@ permissions:
     pr.cam:
         description: Allows the use of /pr cam
         default: true
-    pr.get:
+    pr.chunkySettings:
         description: Allows the use of /pr get
         default: true
-    rs.use:
-        description: Allows the use of /rs
+    pr.setparam:
+        description: Allows the use of /pr setparam
         default: true
-    rs.setparam:
-        description: Allows the use of /rs setparam
+    pr.removeparam:
+        description: Allows the use of /pr removeparam
         default: true
-    rs.viewparams:
-        description: Allows the use of /rs viewparams
+    pr.viewparams:
+        description: Allows the use of /pr viewparams
         default: true
-    rs.clearparams:
-        description: Allows the use of /rs clearparams
+    pr.clearparams:
+        description: Allows the use of /pr clearparams
         default: true
-    rs.raw:
+    pr.raw:
         description: Allows viewing parameters in raw JSON format
         default: true
-    rs.list:
+    pr.list:
         description: Allows viewing parameters in list format
         default: op
