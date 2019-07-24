@@ -1,6 +1,6 @@
 package me.engineersbox.playerrev.chunky;
 
-public class Orientation {
+public class orientation {
 
 	public double roll = 0;
     public double pitch = 0;
@@ -31,7 +31,7 @@ public class Orientation {
     }
     
     public String toString() {
-    	return "orientation: { roll: " + this.roll + ", pitch: " + this.pitch + ", yaw: " + this.yaw + " }";
+    	return "\"orientation\": { \"roll\": " + this.roll + ", \"pitch\": " + this.pitch + ", \"yaw\": " + this.yaw + " }";
     }
 	
 }
