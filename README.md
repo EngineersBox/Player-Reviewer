@@ -37,6 +37,16 @@ As it stands, currently the only permissions plugin supported are PermissionsEx 
 * **/pr removeapplication \<name\>** - *Remove An Open Application By Specifying Relevant Player Name* **\[ALIASES: ra, remap\]**
 * **/pr version** - *Displays Plugin Version Information*
 * **/pr help** - *Displays Plugin Help Information*
+* **/pr apphelp** - *Displays application submission help*
+* **/pr status** - *Displays player application status*
+* **/pr pos1** - *Register chunky position 1*
+* **/pr pos1** - *Register chunky position 2*
+* **/pr cam** - *Register a chunky camera*
+* **/pr chunkysettings** - *Returns position, chunk and parameter details* **[ALIASES: cs]**
+* **/pr setparam** - *Sets a chunky JSON parameter* **[ALIASES: sp]**
+* **/pr removeparam** - *Removes a chunky JSON parameter* **[ALIASES: rp]**
+* **/pr viewparams \<raw/list\>** - *View currently set chunky JSON parameters* **[ALIASES: vp]**
+* **/pr clearparams \[\<confirm/deny\>\]** - *Clear all currently set chunky JSON parameters (requires confirmation)* **[ALIASES: rp]**
 
 
 ---
@@ -53,6 +63,16 @@ As it stands, currently the only permissions plugin supported are PermissionsEx 
 * **pr.removeapplication** - *Allows the use of the /pr removeapplication comman*
 * **pr.version** - *Allows the use of /pr version*
 * **pr.help** - *allows the use of /pr help*
+* **pr.apphelp** - *allows the use of /pr apphelp*
+* **pr.status** - *allows the use of /pr status*
+* **pr.pos1** - *allows the use of /pr pos1*
+* **pr.pos2** - *allows the use of /pr pos2*
+* **pr.cam** - *allows the use of /pr cam*
+* **pr.chunkysettings** - *allows the use of /pr chunkysettings*
+* **pr.setparam** - *allows the use of /pr setparam*
+* **pr.removeparam** - *allows the use of /pr removeparam*
+* **pr.viewparams** - *allows the use of /pr viewparams*
+* **pr.clearparams** - *allows the use of /pr clearparams*
 
 
 ---
@@ -80,13 +100,59 @@ The config file contains:
 > &nbsp;&nbsp;\- layout\
 > &nbsp;&nbsp;Use-Config-Ranks: true\
 > &nbsp;&nbsp;Application-Ranks: guest[GUEST:guest],squire,knight,baron,builder,head_builder,senior_builder
+> Chunky-Config:\
+> &nbsp;&nbsp;Use-Chunky: false\
+> &nbsp;&nbsp;Max-Camera-Count: 4
 
 Here you can specify:
 - Whether to use SQL databases or local files for application storage
 - Specify SQL database connection parameters
 - Whether to use plot locations (PlotSquared dependency) or player locations
 - Specify custom criteria for applications (Requires SQL database use)
+- Specify whether to use/allow ranks in applications
+- Specify the name of the SQL table applications are stored in
 - Whether to use server ranks or specify specific ranks for application availability
 - Specify ranks that can be applied for via an application (must be a valid rank on the server)
+- Whether to export chunky render parameters and cameras set by users
+- Maximum camera count for chunky renders
 
+---
+
+## SQL Database Configuration
+
+If you are using an SQL database to store the applications, there are a few naming conventions that need to be followed (this will be user defined in the future):
+
+The table name that you use must be set within the config file to match.
+The columns must be as follows (replace 'criteria 1, criteria 2, etc' with the names of your criteria):
+**settings | status | name | rank | criteria 1 | criteria 2| … | criteria n | plotloc | totalRatings | ratinglist**
+
+---
+
+## Chunky
+
+Chunky parameters and cameras are exported in JSON format to the SQL table column "settings", from here you can process them and generate a render of the chunky specified within the JSON.
+
+Cameras are labelled in the following fahsion: "camera_n" where 'n' denotes the camera number.
+
+All of the chunky parameters can be set from in game with the /pr setparams command. As a standard with just two positions captured and a camera set, the JSON will be as follows (any additional parameters are added in prior to export):
+
+> \{
+> &nbsp;&nbsp;&nbsp;&nbsp;"camera_1": \{\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"position": \{\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"x": 39.26309100906894,\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"y": 65.49390748022948,\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"z": -236.876800963328\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\},\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"orientation": \{\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"roll": 0.0,\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"pitch": -0.8635957187819827,\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"yaw": 0.7880137870620696\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\},\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"projectionMode": "PINHOLE",\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"fov": 90.0,\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"dof": "Infinity",\
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"focalOffset": 2.0\
+> &nbsp;&nbsp;&nbsp;&nbsp;\},\
+> &nbsp;&nbsp;&nbsp;&nbsp;"chunkList": [[0,-15],[0,-14],[1,-15],[1,-14],[2,-15],[2,-14]]\
+> \}
 ---
