@@ -73,9 +73,6 @@ public class SQLLink {
 			String tableName = Config.getTableName();
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
-			if (!rs.next()) {
-				throw new SQLException();
-			}
 			DataSet retdata = new DataSet(rs);
 			
 			if (Main.useRanksInApplication) {
@@ -103,9 +100,6 @@ public class SQLLink {
 			String tableName = Config.getTableName();
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
-			if (!rs.next()) {
-				throw new SQLException();
-			}
 			DataSet retdata = new DataSet(rs);
 			return retdata.getPlotLoc();
 			
@@ -144,9 +138,6 @@ public class SQLLink {
 			
 			sql = "SELECT * FROM " + tableName + " WHERE name = '" + name + "';";
 			ResultSet rs = Main.MySQL.querySQL(sql);
-			if (!rs.next()) {
-				throw new SQLException();
-			}
 			DataSet retdata = new DataSet(rs);
 			
 			totalratings = retdata.getTotalRatings() + 1;
