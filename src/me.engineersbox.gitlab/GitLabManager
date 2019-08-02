@@ -1,0 +1,37 @@
+package me.engineersbox.playerrev.gitlab;
+
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.Project;
+
+import me.engineersbox.playerrev.Main;
+
+public class GitLabManager {
+
+	public static void addIssue(Player p, String title, String description) throws GitLabApiException {
+		try {
+			List<Project> projects = Main.gitlabAPI.getProjectApi().getProjects();
+			Project repo = null;
+			for (Project proj : projects) {
+				if (proj.getName().equals(GitConfig.getRepoName())) {
+					repo = proj;
+				}
+			}
+			if (repo != null) {
+				Main.gitlabAPI.getIssuesApi().createIssue(repo.getId(), title, description);
+				Bukkit.getLogger().info("[Player Reviewer] Added new application issue marker for: " + p.getName());
+			} else {
+				Bukkit.getLogger().severe("[Player Reviewer] Could not retrieve project: " + GitConfig.getRepoName());
+				throw new GitLabApiException("no-repo");
+			}
+			
+		} catch (GitLabApiException e) {
+			Bukkit.getLogger().severe("[Player Reviewer] Could not retrieve projects from GitLab server");
+			throw new GitLabApiException("no-projects");
+		}
+	}
+	
+}
