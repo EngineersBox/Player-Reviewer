@@ -1,6 +1,8 @@
 package me.engineersbox.playerrev;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +14,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.gitlab4j.api.GitLabApiException;
 
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.google.gson.Gson;
 
 import me.engineersbox.playerrev.chunky.CameraObject;
@@ -27,14 +31,30 @@ import me.engineersbox.playerrev.exceptions.FieldValueException;
 import me.engineersbox.playerrev.exceptions.HashMapSizeOverflow;
 import me.engineersbox.playerrev.exceptions.InvalidGroupException;
 import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
+import me.engineersbox.playerrev.gitlab.GitConfig;
+import me.engineersbox.playerrev.gitlab.GitLabManager;
 import me.engineersbox.playerrev.methodlib.GroupPlugins;
 import me.engineersbox.playerrev.methodlib.HoverText;
+import me.engineersbox.playerrev.methodlib.JSONMessage;
 import me.engineersbox.playerrev.methodlib.Lib;
 import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
 import me.engineersbox.playerrev.mysql.Config;
 import me.engineersbox.playerrev.mysql.SQLLink;
 
 public class Commands implements CommandExecutor {
+	
+	public void renderHelp(Player p, String cmdPrefix) {
+		Main.InfoHeader(p, "New Render Help");
+		p.sendMessage(ChatColor.GRAY + "1. " + ChatColor.AQUA + "Select the corner chunks of your build with " + ChatColor.GOLD + "/" + cmdPrefix +" pos1" + ChatColor.AQUA + " and " + ChatColor.GOLD + "/"+ cmdPrefix + " pos2");
+		p.sendMessage(ChatColor.GRAY + "2. " + ChatColor.AQUA + "Register up to " + ChatColor.GREEN + Config.maxCamCount() + ChatColor.AQUA + " camera positons for the screenshot generator with " + ChatColor.GOLD + "/" + cmdPrefix + " cam1 ... /" + cmdPrefix + " cam4");
+		p.sendMessage(ChatColor.GRAY + "3. " + ChatColor.AQUA + "Set any custom chunky parameters (using JSON formatting) with " + ChatColor.GOLD + "/" + cmdPrefix + " set <json parameters>");
+		p.sendMessage(ChatColor.GRAY + "-  " + ChatColor.AQUA + "If you want to clear all parameters, use " + ChatColor.GOLD + "/" + cmdPrefix + " clear");
+		p.sendMessage(ChatColor.GRAY + "4. " + ChatColor.AQUA + "Once you are happy with the screenshot steup, use the command " + ChatColor.GOLD + "/" + cmdPrefix + " request" + ChatColor.AQUA + " to submit a request for a render");
+		p.sendMessage(ChatColor.DARK_GRAY + "----[" + ChatColor.RED + "Additional Info" + ChatColor.DARK_GRAY + "]----");
+		p.sendMessage(ChatColor.GRAY + "- " + ChatColor.AQUA + "You can check on your render requests with " + ChatColor.GOLD + "/" + cmdPrefix + " getrequests" + ChatColor.AQUA + ". Click on the messages with the 'done' status to direct you to the image of the render");
+		p.sendMessage(ChatColor.GRAY + "- " + ChatColor.AQUA + "If you want to clear all parameters, use " + ChatColor.GOLD + "/" + cmdPrefix + " clear");
+		Main.InfoHeader(p, "New Render Help");
+	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		
@@ -56,7 +76,7 @@ public class Commands implements CommandExecutor {
 					if (args[0].equalsIgnoreCase("apply")) {
 						
 						if (p.hasPermission("pr.apply")) {
-							String rankName = "";
+							String rankName = null;
 							
 							if (args.length <= 2) {
 								if (Main.useRanksInApplication) {
@@ -68,21 +88,101 @@ public class Commands implements CommandExecutor {
 									try {
 										if (Main.UseSQL) {
 											if (Main.useRanksInApplication) {
-												SQLLink.newApp(p, p.getName(), rankName.toLowerCase(),  Lib.playerJsonParams(p));
+												if (Config.useChunky() && !Config.useExternalRenders()) {
+													SQLLink.newApp(p, p.getName(), rankName.toLowerCase(),  Lib.playerJsonParams(p));
+													p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+												} else {
+													SQLLink.newApp(p, p.getName(), rankName.toLowerCase(),  null);
+													p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+													if (Config.useExternalRenders()) {
+														JSONMessage.create(Main.prefix)
+																	.then("Would you like to get a render of your build? ")
+																		.color(ChatColor.AQUA)
+																	.then("[").color(ChatColor.GRAY)
+																	.then("YES")
+																		.color(ChatColor.GREEN)
+																		.tooltip(JSONMessage.create("Show the steps to create a new render of your build")
+																							.color(ChatColor.GOLD))
+																		.runCommand("/pr renderhelp")
+																	.then("][").color(ChatColor.GRAY)
+																	.then("NO")
+																		.color(ChatColor.RED)
+																		.tooltip(JSONMessage.create("Don't create a new render")
+																				.color(ChatColor.GOLD))
+																	.then("]").color(ChatColor.GRAY)
+																	.send(p);
+													}
+												}
 											} else {
-												SQLLink.newApp(p, p.getName(), null,  Lib.playerJsonParams(p));
+												if (Config.useChunky() && !Config.useExternalRenders()) {
+													SQLLink.newApp(p, p.getName(), null,  Lib.playerJsonParams(p));
+													p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+												} else {
+													SQLLink.newApp(p, p.getName(), null,  null);
+													p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+													if (Config.useExternalRenders()) {
+														JSONMessage.create(Main.prefix)
+																	.then("Would you like to get a render of your build?")
+																		.color(ChatColor.DARK_AQUA)
+																	.then("[").color(ChatColor.GRAY)
+																	.then("YES")
+																		.color(ChatColor.GREEN)
+																		.tooltip(JSONMessage.create("Show the steps to create a new render of your build")
+																				.color(ChatColor.GOLD))
+																		.runCommand("/pr renderhelp")
+																	.then("][").color(ChatColor.GRAY)
+																	.then("NO")
+																		.color(ChatColor.RED)
+																		.tooltip(JSONMessage.create("Don't create a new render")
+																				.color(ChatColor.GOLD))
+																	.then("]").color(ChatColor.GRAY)
+																	.send(p);
+													}
+												}
 											}
 										} else {
 											if (Main.useRanksInApplication) {
 												InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
+												p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 											} else {
 												InvConfig.newApp(p, p.getName(), null);
+												p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 											}
 										}
 										
-										p.sendMessage(Main.prefix + ChatColor.RED + "Ignoring ranks");
+										if (GitConfig.useGitLab()) {
+											List<String> description = new ArrayList<String>();
+											DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+											LocalDateTime now = LocalDateTime.now();
+											String coordsstring = null;
+											PlotPlayer player = PlotPlayer.wrap(p);
+											
+											if (Main.usePlotLoc) {
+												try {
+													coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+												} catch (Exception e) {
+													coordsstring = Lib.getCoordsString(p.getLocation());
+												}
+											} else {
+												coordsstring = Lib.getCoordsString(p.getLocation());
+											}
+											
+											description.add("Player Name: " + p.getName());
+											description.add("Player UUID: " + p.getUniqueId());
+											description.add("Date Time: " + dtf.format(now) + "\n");
+											description.add("Build Coordinates: " + coordsstring);
+											description.add("Rank: " + rankName.toLowerCase() + "\n");
+											description.add("Chunky Render: " + true);
+											description.add("Build Warp: /tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1));
+											try {
+												GitLabManager.addIssue(p, "Application for " + p.getName(), description.toArray().toString());
+											} catch (GitLabApiException e) {
+												p.sendMessage("");
+											}
+										}
+										
 										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+										
 										
 									} catch (SQLException | FieldValueException e) {
 										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
@@ -115,9 +215,40 @@ public class Commands implements CommandExecutor {
 											}
 										}
 										
-										p.sendMessage(Main.prefix + ChatColor.RED + "Ignoring ranks");
-										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
+										
+										if (GitConfig.useGitLab()) {
+											List<String> description = new ArrayList<String>();
+											DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+											LocalDateTime now = LocalDateTime.now();
+											String coordsstring = null;
+											PlotPlayer player = PlotPlayer.wrap(p);
+											
+											if (Main.usePlotLoc) {
+												try {
+													coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+												} catch (Exception e) {
+													coordsstring = Lib.getCoordsString(p.getLocation());
+												}
+											} else {
+												coordsstring = Lib.getCoordsString(p.getLocation());
+											}
+											
+											description.add("Player Name: " + p.getName());
+											description.add("Player UUID: " + p.getUniqueId());
+											description.add("Date Time: " + dtf.format(now) + "\n");
+											description.add("Build Coordinates: " + coordsstring);
+											description.add("Rank: " + rankName.toLowerCase() + "\n");
+											description.add("Chunky Render: " + true);
+											description.add("Build Warp: /tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1));
+											try {
+												GitLabManager.addIssue(p, "Application for " + p.getName(), description.toArray().toString());
+											} catch (GitLabApiException e) {
+												p.sendMessage("");
+											}
+										}
+										
+										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
 										
 									} catch (SQLException | FieldValueException e) {
 										Bukkit.getLogger().info(e.toString());
@@ -181,6 +312,14 @@ public class Commands implements CommandExecutor {
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr help" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Opens This Menu");
 							}
 							Main.InfoHeader(p, "Player Reviewer");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if (args[0].equalsIgnoreCase("renderhelp")) {
+						
+						if (p.hasPermission("pr.renderhelp") && Config.useExternalRenders()) {
+							renderHelp(p, Config.externalRenderPrefix());
 						} else {
 							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
@@ -266,52 +405,57 @@ public class Commands implements CommandExecutor {
 					} else if (args[0].equalsIgnoreCase("rate")) {
 						
 						if (p.hasPermission("pr.rate")) {
-							if (args.length == Config.getCriteria().size() + 1) {
-								
-								boolean successFlag = true;
-								
-								try {
+							if (Config.inGameRating()) {
+								if (args.length == Config.getCriteria().size() + 2) {
 									
-									List<Integer> criteria = new ArrayList<Integer>();
-									for (int i = 2; i < args.length; i++) {
-										criteria.add(Lib.returnInRange(args[i]));
+									boolean successFlag = true;
+									
+									try {
+										
+										List<Integer> criteria = new ArrayList<Integer>();
+										for (int i = 2; i < args.length; i++) {
+											criteria.add(Lib.returnInRange(args[i]));
+										}
+										
+										if (Main.UseSQL == true) {
+											SQLLink.ratePlayer(p.getDisplayName(), args[1], criteria);
+											p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+										} else {
+											InvConfig.ratePlayer(p.getDisplayName(), args[1], criteria);
+											p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+										}
+										successFlag = false;
+										
+									} catch (NumberFormatException e) {
+										
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rating Value!");
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
+										successFlag = false;
+										
+									} catch (SQLException | FieldValueException se) {
+										
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does not Exist!");
+										successFlag = false;
+										
 									}
 									
-									if (Main.UseSQL == true) {
-										SQLLink.ratePlayer(p.getDisplayName(), args[1], criteria);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
-									} else {
-										InvConfig.ratePlayer(p.getDisplayName(), args[1], criteria);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Rating For " + args[1] + "'s Application Submitted!");
+									if (successFlag) {
+										
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rating Value!");
+										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Valid Values Are 0 - 100 Inclusive");
+										
 									}
-									successFlag = false;
 									
-								} catch (NumberFormatException e) {
+								} else {
 									
-									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rating Value!");
-									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Values Must Be Integers, Not" +  e.toString().substring(e.toString().lastIndexOf(":") + 1));
-									successFlag = false;
-									
-								} catch (SQLException | FieldValueException se) {
-									
-									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does not Exist!");
-									successFlag = false;
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <criteria 1> <criteria 2> ...");
 									
 								}
-								
-								if (successFlag) {
-									
-									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rating Value!");
-									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Valid Values Are 0 - 100 Inclusive");
-									
-								}
-								
 							} else {
-								
-								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
-								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/rv rate <player> <criteria 1> <criteria 2> ...");
-								
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application rating in-game is disabled, enable it in the config");
 							}
+							
 						} else {
 							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
@@ -337,64 +481,68 @@ public class Commands implements CommandExecutor {
 					//pr ratings <player>
 					} else if (args[0].equalsIgnoreCase("ratings")) {
 						
-						if ((args.length == 2) && ((args[1].equalsIgnoreCase(p.getDisplayName())) | (p.hasPermission("pr.ratings")))) {
-							
-							try {
+						if (Config.inGameRating()) {
+							if ((args.length == 2) && ((args[1].equalsIgnoreCase(p.getDisplayName())) | (p.hasPermission("pr.ratings")))) {
+								
+								try {
 
-								if (Main.UseSQL == true) {
-									ArrayList<List<String>> Ratings = SQLLink.getRatingValues(args[1]);
-									String appRank = Ratings.get(0).get(0);
-									float cTotal = 0;
+									if (Main.UseSQL == true) {
+										ArrayList<List<String>> Ratings = SQLLink.getRatingValues(args[1]);
+										String appRank = Ratings.get(0).get(0);
+										float cTotal = 0;
+										
+										p.sendMessage("");
+										p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+										p.sendMessage(ChatColor.LIGHT_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
+										p.sendMessage("");
+										for (String ra : Ratings.get(1)) {
+											String[] ratingValues = ra.split("-");
+											p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + " " + ratingValues[4] + " " + ratingValues[5]);
+										}
+										p.sendMessage("");
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(1) + " " + Ratings.get(0).get(2) + " " + Ratings.get(0).get(3) + " " + Ratings.get(0).get(4) + " " + Ratings.get(0).get(5));
+										for (int i = 1; i < 6; i++) {
+											cTotal += Float.parseFloat(Ratings.get(0).get(i));
+										}
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Points " + ChatColor.WHITE + ":: " + ChatColor.RED + Float.toString(cTotal) + "/500");
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank.substring(0, 1).toUpperCase() + appRank.substring(1));
+										p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+									} else {
+										ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
+										String appRank = Ratings.get(1).get(5);
+										float cTotal = 0;
+										
+										p.sendMessage("");
+										p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+										p.sendMessage(ChatColor.LIGHT_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
+										p.sendMessage("");
+										for (String ra : Ratings.get(0)) {
+											String[] ratingValues = ra.split("-");
+											p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + " " + ratingValues[4] + " " + ratingValues[5]);
+										}
+										p.sendMessage("");
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + " " + Ratings.get(1).get(1) + " " + Ratings.get(1).get(2) + " " + Ratings.get(1).get(3) + " " + Ratings.get(1).get(4));
+										for (int i = 0; i < 5; i++) {
+											cTotal += Float.parseFloat(Ratings.get(1).get(i));
+										}
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Points " + ChatColor.WHITE + ":: " + ChatColor.RED + Float.toString(cTotal) + "/500");
+										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank);
+										p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+									}
 									
-									p.sendMessage("");
-									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.LIGHT_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
-									p.sendMessage("");
-									for (String ra : Ratings.get(1)) {
-										String[] ratingValues = ra.split("-");
-										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + " " + ratingValues[4] + " " + ratingValues[5]);
-									}
-									p.sendMessage("");
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(0).get(1) + " " + Ratings.get(0).get(2) + " " + Ratings.get(0).get(3) + " " + Ratings.get(0).get(4) + " " + Ratings.get(0).get(5));
-									for (int i = 1; i < 6; i++) {
-										cTotal += Float.parseFloat(Ratings.get(0).get(i));
-									}
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Points " + ChatColor.WHITE + ":: " + ChatColor.RED + Float.toString(cTotal) + "/500");
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank.substring(0, 1).toUpperCase() + appRank.substring(1));
-									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-								} else {
-									ArrayList<List<String>> Ratings = InvConfig.getRatings(args[1]);
-									String appRank = Ratings.get(1).get(5);
-									float cTotal = 0;
 									
-									p.sendMessage("");
-									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
-									p.sendMessage(ChatColor.LIGHT_PURPLE + "Format: <name> :: <criteria 1> <criteria 2> ...");
-									p.sendMessage("");
-									for (String ra : Ratings.get(0)) {
-										String[] ratingValues = ra.split("-");
-										p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + ratingValues[0] + " " + ChatColor.WHITE +  ":: " +  ChatColor.RED + ratingValues[1] + " " + ratingValues[2] + " " + ratingValues[3] + " " + ratingValues[4] + " " + ratingValues[5]);
-									}
-									p.sendMessage("");
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Averages " + ChatColor.WHITE + ":: " + ChatColor.RED + Ratings.get(1).get(0) + " " + Ratings.get(1).get(1) + " " + Ratings.get(1).get(2) + " " + Ratings.get(1).get(3) + " " + Ratings.get(1).get(4));
-									for (int i = 0; i < 5; i++) {
-										cTotal += Float.parseFloat(Ratings.get(1).get(i));
-									}
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Total Points " + ChatColor.WHITE + ":: " + ChatColor.RED + Float.toString(cTotal) + "/500");
-									p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "Rank Applied For " + ChatColor.WHITE + ":: " + ChatColor.RED + appRank);
-									p.sendMessage(ChatColor.DARK_GRAY + "----={<" + ChatColor.RED + "  [" + ChatColor.DARK_AQUA + args[1] + " Ratings" + ChatColor.RED + "]  " + ChatColor.DARK_GRAY + "}>=----");
+								} catch (SQLException | FieldValueException e) {
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
 								}
 								
+							} else {
 								
-							} catch (SQLException | FieldValueException e) {
-								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
+								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr viewratings <name>");
+								
 							}
-							
 						} else {
-							
-							p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Syntax!");
-							p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Usage: " + ChatColor.ITALIC + "/pr viewratings <name>");
-							
+							p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application rating in-game is disabled, enable it in the config");
 						}
 						
 					//pr approval <name> <approve/deny>	
@@ -482,11 +630,10 @@ public class Commands implements CommandExecutor {
 								try {
 									 if (Main.UseSQL == true) {
 										 SQLLink.removeApp(args[1]);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 									 } else {
 										 InvConfig.removeApp(args[1]);
-										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 									 }
+									 p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 									
 								} catch (SQLException | ClassNotFoundException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
@@ -620,12 +767,12 @@ public class Commands implements CommandExecutor {
 						            		if (cams.get("camera_" + camCount) != null) {
 							                	
 							                    CameraObject cam = cams.get("camera_" + camCount);
-							                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
-							                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+							                    cam.orientation.setPitch(p.getLocation().getPitch());
+							                    cam.orientation.setYaw(p.getLocation().getYaw());
 							                    cam.position.setX(p.getLocation().getX());
 							                    cam.position.setY(p.getLocation().getY());
 							                    cam.position.setZ(p.getLocation().getZ());
-						                    
+							                    
 												cams.put("camera_" + camCount, cam);
 												Main.cameras.put(p.getUniqueId(), cams);
 												p.sendMessage(Main.prefix + ChatColor.AQUA + "Camera " + camCount + " registered");
@@ -634,8 +781,8 @@ public class Commands implements CommandExecutor {
 							                	
 							                    CameraObject cam = new CameraObject("camera_" + camCount);
 							                    cam.orientation = new orientation();
-							                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
-							                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
+							                    cam.orientation.setPitch(p.getLocation().getPitch());
+							                    cam.orientation.setYaw(p.getLocation().getYaw());
 							                    cam.position = new position();
 							                    cam.position.setX(p.getLocation().getX());
 							                    cam.position.setY(p.getLocation().getY());
@@ -680,8 +827,8 @@ public class Commands implements CommandExecutor {
 		            		p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 		            	}
 		            	
-		            } else if ((args[0].equalsIgnoreCase("chunkySettings")) || (args[0].equalsIgnoreCase("cs"))) {
-		            	if (p.hasPermission("pr.chunkySettings")) {
+		            } else if ((args[0].equalsIgnoreCase("chunkysettings")) || (args[0].equalsIgnoreCase("cs"))) {
+		            	if (p.hasPermission("pr.chunkysettings")) {
 		            		if (useChunky) {
 			            		String pos1 = ChatColor.DARK_RED + "Not registered ";
 			            		String pos2 = ChatColor.DARK_RED + "Not registered ";
