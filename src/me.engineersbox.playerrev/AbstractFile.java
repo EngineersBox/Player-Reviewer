@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import me.engineersbox.playerrev.Main;
 
 public class AbstractFile {
    
@@ -35,8 +34,18 @@ public class AbstractFile {
         config.addDefault("Application-Settings.Use-Config-Ranks", true);
         config.addDefault("Application-Settings.Use-Ranks-In-Application", true);
         config.addDefault("Application-Settings.Application-Ranks", "guest[GUEST:guest],squire,knight,baron,builder,head_builder,senior_builder");
+        config.addDefault("Application-Settings.In-Game-Rating", true);
+        config.addDefault("External-Renders.Use-External", false);
+        config.addDefault("External-Renders.Render-Command-Prefix", "rs");
         config.addDefault("Chunky-Config.Use-Chunky", false);
         config.addDefault("Chunky-Config.Max-Camera-Count", 4);
+        config.addDefault("GitLab-Config.Use-GitLab", true);
+        config.addDefault("GitLab-Config.Use-Access-Token", true);
+        config.addDefault("GitLab-Config.Logins.Address", "http://your.gitlab.server.com");
+        config.addDefault("GitLab-Config.Logins.RepoName", "reponame");
+        config.addDefault("GitLab-Config.Logins.Username", "username");
+        config.addDefault("GitLab-Config.Logins.Password", "password");
+        config.addDefault("GitLab-Config.Logins.Access-Token", "accesskey");
         config.options().copyDefaults(true);
         saveConfig();
     }
