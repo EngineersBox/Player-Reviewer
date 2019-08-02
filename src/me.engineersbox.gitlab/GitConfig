@@ -1,0 +1,40 @@
+package me.engineersbox.playerrev.gitlab;
+
+import me.engineersbox.playerrev.AbstractFile;
+import me.engineersbox.playerrev.Main;
+
+public class GitConfig extends AbstractFile {
+
+	public GitConfig(Main main) {
+		super(main, "applications.yml");
+	}
+	
+	public static boolean useGitLab() {
+		return config.getBoolean("GitLab-Config.Use-GitLab");
+	}
+	
+	public static boolean useToken() {
+		return config.getBoolean("GitLab-Config.Use-Access-Token");
+	}
+	
+	public static String getAccesskey() {
+		return config.getString("GitLab-Config.Logins.Access-Token");
+	}
+	
+	public static String getGitAddress() {
+		return config.getString("GitLab-Config.Logins.Address");
+	}
+	
+	public static String getGitUser() {
+		return config.getString("GitLab-Config.Logins.Username");
+	}
+	
+	public static String getGitPass() {
+		return config.getString("GitLab-Config.Logins.Password");
+	}
+	
+	public static String getRepoName() {
+		return config.getString("GitLab-Config.Logins.RepoName");
+	}
+
+}
