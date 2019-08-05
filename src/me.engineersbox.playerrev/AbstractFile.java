@@ -40,12 +40,9 @@ public class AbstractFile {
         config.addDefault("Chunky-Config.Use-Chunky", false);
         config.addDefault("Chunky-Config.Max-Camera-Count", 4);
         config.addDefault("GitLab-Config.Use-GitLab", true);
-        config.addDefault("GitLab-Config.Use-Access-Token", true);
         config.addDefault("GitLab-Config.Logins.Address", "http://your.gitlab.server.com");
-        config.addDefault("GitLab-Config.Logins.RepoName", "reponame");
-        config.addDefault("GitLab-Config.Logins.Username", "username");
-        config.addDefault("GitLab-Config.Logins.Password", "password");
-        config.addDefault("GitLab-Config.Logins.Access-Token", "accesskey");
+        config.addDefault("GitLab-Config.Logins.Project-ID", 1);
+        config.addDefault("GitLab-Config.Logins.Access-Token", "token");
         config.options().copyDefaults(true);
         saveConfig();
     }
