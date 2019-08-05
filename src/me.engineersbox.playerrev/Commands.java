@@ -1,5 +1,6 @@
 package me.engineersbox.playerrev;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +15,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.gitlab4j.api.GitLabApiException;
 
 import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.google.gson.Gson;
@@ -63,6 +63,9 @@ public class Commands implements CommandExecutor {
 			Player p = (Player) sender;
 			String tHash = p.getUniqueId().toString();
 			boolean useChunky = Config.useChunky();
+			String rankName = "Ranks Disabled";
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+			String coordsstring = null;
 			
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
 					
@@ -76,8 +79,6 @@ public class Commands implements CommandExecutor {
 					if (args[0].equalsIgnoreCase("apply")) {
 						
 						if (p.hasPermission("pr.apply")) {
-							String rankName = null;
-							
 							if (args.length <= 2) {
 								if (Main.useRanksInApplication) {
 									rankName = args[1];
@@ -151,10 +152,8 @@ public class Commands implements CommandExecutor {
 										}
 										
 										if (GitConfig.useGitLab()) {
-											List<String> description = new ArrayList<String>();
-											DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-											LocalDateTime now = LocalDateTime.now();
-											String coordsstring = null;
+											String description = "";
+											Main.now = LocalDateTime.now();
 											PlotPlayer player = PlotPlayer.wrap(p);
 											
 											if (Main.usePlotLoc) {
@@ -167,17 +166,19 @@ public class Commands implements CommandExecutor {
 												coordsstring = Lib.getCoordsString(p.getLocation());
 											}
 											
-											description.add("Player Name: " + p.getName());
-											description.add("Player UUID: " + p.getUniqueId());
-											description.add("Date Time: " + dtf.format(now) + "\n");
-											description.add("Build Coordinates: " + coordsstring);
-											description.add("Rank: " + rankName.toLowerCase() + "\n");
-											description.add("Chunky Render: " + true);
-											description.add("Build Warp: /tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1));
+											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
+											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
+											description += "%2A%2ADate Time%2A%2A: " + dtf.format(Main.now) + "%3C%62%72%2F%3E";
+											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
+											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
+											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
+											description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
+											description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
 											try {
-												GitLabManager.addIssue(p, "Application for " + p.getName(), description.toArray().toString());
-											} catch (GitLabApiException e) {
-												p.sendMessage("");
+												GitLabManager.addIssue(p, "Application for " + p.getName(), description);
+											} catch (IOException e) {
+												p.sendMessage(Main.prefix + ChatColor.RED + "An error occured while creating a GitLab issue, please contact an administrator");
+												Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
 											}
 										}
 										
@@ -218,10 +219,8 @@ public class Commands implements CommandExecutor {
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 										
 										if (GitConfig.useGitLab()) {
-											List<String> description = new ArrayList<String>();
-											DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-											LocalDateTime now = LocalDateTime.now();
-											String coordsstring = null;
+											String description = "";
+											Main.now = LocalDateTime.now();
 											PlotPlayer player = PlotPlayer.wrap(p);
 											
 											if (Main.usePlotLoc) {
@@ -234,17 +233,19 @@ public class Commands implements CommandExecutor {
 												coordsstring = Lib.getCoordsString(p.getLocation());
 											}
 											
-											description.add("Player Name: " + p.getName());
-											description.add("Player UUID: " + p.getUniqueId());
-											description.add("Date Time: " + dtf.format(now) + "\n");
-											description.add("Build Coordinates: " + coordsstring);
-											description.add("Rank: " + rankName.toLowerCase() + "\n");
-											description.add("Chunky Render: " + true);
-											description.add("Build Warp: /tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1));
+											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
+											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
+											description += "%2A%2ADate Time%2A%2A: " + dtf.format(Main.now) + "%3C%62%72%2F%3E";
+											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
+											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
+											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
+											description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
+											description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
 											try {
-												GitLabManager.addIssue(p, "Application for " + p.getName(), description.toArray().toString());
-											} catch (GitLabApiException e) {
-												p.sendMessage("");
+												GitLabManager.addIssue(p, "Application for " + p.getName(), description);
+											} catch (IOException e) {
+												p.sendMessage(Main.prefix + ChatColor.RED + "An error occured while creating a GitLab issue, please contact an administrator");
+												Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
 											}
 										}
 										
@@ -320,6 +321,36 @@ public class Commands implements CommandExecutor {
 						
 						if (p.hasPermission("pr.renderhelp") && Config.useExternalRenders()) {
 							renderHelp(p, Config.externalRenderPrefix());
+							try {
+								if (GitConfig.useGitLab() && GitLabManager.checkIssueExists("Application%20for%20" + p.getName())) {
+									String description = "";
+									PlotPlayer player = PlotPlayer.wrap(p);
+									
+									if (Main.usePlotLoc) {
+										try {
+											coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
+										} catch (Exception e) {
+											coordsstring = Lib.getCoordsString(p.getLocation());
+										}
+									} else {
+										coordsstring = Lib.getCoordsString(p.getLocation());
+									}
+									
+									description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
+									description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
+									description += "%2A%2ADate Time%2A%2A: " + dtf.format(Main.now) + "%3C%62%72%2F%3E";
+									description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
+									description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
+									description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
+									description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
+									description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
+									
+									GitLabManager.editIssue("Application for " + p.getName(), description);
+								}
+							} catch (IOException e) {
+								p.sendMessage(Main.prefix + ChatColor.RED + "An error occured while creating a GitLab issue, please contact an administrator");
+								Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
+							}
 						} else {
 							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
@@ -574,6 +605,10 @@ public class Commands implements CommandExecutor {
 											InvConfig.removeApp(args[1]);
 										}
 										
+										if (GitConfig.useGitLab()) {
+											GitLabManager.removeIssue(p, "Application%20for%20" + p.getName());
+										}
+										
 										if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1]))) {
 											Bukkit.getPlayer(args[1]).sendMessage(Main.prefix + ChatColor.GOLD + "Your application was " + ChatColor.GREEN + "approved");
 											Main.appStatus.remove(Bukkit.getPlayer(args[1]).getUniqueId());
@@ -587,6 +622,10 @@ public class Commands implements CommandExecutor {
 											SQLLink.removeApp(args[1]);
 										} else {
 											InvConfig.removeApp(args[1]);
+										}
+										
+										if (GitConfig.useGitLab()) {
+											GitLabManager.removeIssue(p, "Application%20for%20" + p.getName());
 										}
 										
 										if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1]))) {
@@ -609,6 +648,8 @@ public class Commands implements CommandExecutor {
 									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid Rank In Application!");
 								} catch (FieldValueException | ClassNotFoundException e) {
 									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
+								} catch (IOException e) {
+									Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
 								}
 								
 							} else {
@@ -633,10 +674,15 @@ public class Commands implements CommandExecutor {
 									 } else {
 										 InvConfig.removeApp(args[1]);
 									 }
+									 if (GitConfig.useGitLab()) {
+											GitLabManager.removeIssue(p, "Application%20for%20" + p.getName());
+										}
 									 p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
 									
 								} catch (SQLException | ClassNotFoundException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
+								} catch (IOException e) {
+									Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
 								}
 								
 							} else {
