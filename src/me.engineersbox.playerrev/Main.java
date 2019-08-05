@@ -3,6 +3,7 @@ package me.engineersbox.playerrev;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.gitlab4j.api.GitLabApi;
 
 import com.github.intellectualsites.plotsquared.api.PlotAPI;
 
@@ -29,7 +29,6 @@ import me.engineersbox.playerrev.chunky.CameraObject;
 import me.engineersbox.playerrev.chunky.CoordsObject;
 import me.engineersbox.playerrev.chunky.JSONParameter;
 import me.engineersbox.playerrev.enums.Status;
-import me.engineersbox.playerrev.gitlab.GitConfig;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
 import me.engineersbox.playerrev.mysql.Config;
@@ -55,14 +54,13 @@ public class Main extends JavaPlugin implements Listener {
 	public static MySQL MySQL;
 	public static PlotAPI plotapi;
 	public static LuckPermsApi LPapi;
-	public static GitLabApi gitlabAPI;
 	static Connection c = null;
 	public static boolean UseSQL;
 	public static boolean usePlotLoc = false;
 	public static String rankPlugin;
 	public static boolean atConfirm = false;
+	public static LocalDateTime now = null;
 	public static Map<UUID, Status> appStatus = new HashMap<UUID, Status>();
-	
 	public static Map<String, CoordsObject> positions = new HashMap<String, CoordsObject>();
 	public static Map<UUID, MaxSizeHashMap<String, CameraObject>> cameras = new HashMap<UUID, MaxSizeHashMap<String, CameraObject>>();
     public static Map<UUID, JSONParameter> paramMap = new HashMap<UUID, JSONParameter>();
@@ -122,12 +120,6 @@ public class Main extends JavaPlugin implements Listener {
     			e.printStackTrace();
     		}
     	}
-    	
-    	if (GitConfig.useToken()) {
-			gitlabAPI = new GitLabApi(GitConfig.getGitAddress(), GitConfig.getAccesskey());
-		} else {
-			gitlabAPI = new GitLabApi(GitConfig.getGitAddress(), GitConfig.getGitUser(), GitConfig.getGitPass());
-		}
     	
     	Config.InitRankConfig();
     	
