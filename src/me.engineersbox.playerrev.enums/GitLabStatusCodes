@@ -1,0 +1,29 @@
+package me.engineersbox.playerrev.enums;
+
+public enum GitLabStatusCodes {
+	S0("[Player Reviewer] GitLab issue creator: success"),
+	S200("[Player Reviewer] GitLab issue creator: success"),
+	S204("[Player Reviewer] GitLab issue creator: success"),
+	S201("[Player Reviewer] GitLab issue creator: success"),
+	S304("[Player Reviewer] GitLab issue creator: success"),
+	S400("[Player Reviewer] GitLab issue creator: missing required API request attribute"),
+	S401("[Player Reviewer] GitLab issue creator: unauthorized access [Exit Code 401]"),
+	S403("[Player Reviewer] GitLab issue creator: request is not allowed"),
+	S404("[Player Reviewer] GitLab issue creator: resource could not be accessed/found. Possible invalid ID"),
+	S405("[Player Reviewer] GitLab issue creator: request is not supported"),
+	S409("[Player Reviewer] GitLab issue creator: conflicting resource already exists"),
+	S412("[Player Reviewer] GitLab issue creator: request denied"),
+	S422("[Player Reviewer] GitLab issue creator: request could not be processed"),
+	S500("[Player Reviewer] GitLab issue creator: GitLab server error");
+	
+	private String response;
+
+    private GitLabStatusCodes(String response) {
+        this.response = response;
+    }
+    
+    public String getResponse() {
+    	return this.response;
+    }
+
+}
