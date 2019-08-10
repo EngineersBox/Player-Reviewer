@@ -176,7 +176,6 @@ public class GitLabManager {
 	}
 	
 	public static void addIssue(Player p, String title, String description) throws IOException {
-		
 		boolean response = checkIssueExists(title);
 		if (!response) {
 			String posturl = GitConfig.getGitAddress()
@@ -201,8 +200,36 @@ public class GitLabManager {
 					: "[Player Reviewer] GitLab issue creator: unknown error");
 		} else {
 			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue already exists, skipping creation");
+			openIssue(p, title, description);
 		}
 		
+	}
+	
+	private static void openIssue(Player p, String title, String description) throws IOException {
+		boolean response = checkIssueExists(title);
+		if (response) {
+			String posturl = GitConfig.getGitAddress()
+					+ "/api/v4/projects/"
+					+ GitConfig.getProjectID() + "/"
+					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
+					+ "?state_event=reopen&description=" + description;
+			URL obj = new URL(posturl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			con.setRequestMethod("PUT");
+			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+			con.setDoOutput(true);
+
+			int responseCode = con.getResponseCode();
+			con.disconnect();
+			
+			Bukkit.getLogger().info(
+					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
+					GitLabStatusCodes.valueOf("S" + responseCode).getResponse()
+					: "[Player Reviewer] GitLab issue creator: unknown error");
+		} else {
+			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue does not exit, cannot delete");
+		}
 	}
 	
 	private static void closeIssue(Player p, String title) throws IOException {
