@@ -256,7 +256,7 @@ public class GitLabManager {
 		}
 	}
 	
-	public static void editIssue(String title, String desc) {
+	public static void editIssue(Player p, String title, String desc) {
 		try {
 			String posturl = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
