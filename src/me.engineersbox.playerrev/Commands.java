@@ -3,17 +3,21 @@ package me.engineersbox.playerrev;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
@@ -22,8 +26,8 @@ import com.google.gson.Gson;
 import me.engineersbox.playerrev.chunky.CameraObject;
 import me.engineersbox.playerrev.chunky.CoordsObject;
 import me.engineersbox.playerrev.chunky.JSONParameter;
-import me.engineersbox.playerrev.chunky.orientation;
-import me.engineersbox.playerrev.chunky.position;
+import me.engineersbox.playerrev.chunky.OrientationChunky;
+import me.engineersbox.playerrev.chunky.PositionChunky;
 import me.engineersbox.playerrev.enums.RankEnum;
 import me.engineersbox.playerrev.enums.Status;
 import me.engineersbox.playerrev.exceptions.ChunkyParameterException;
@@ -41,7 +45,7 @@ import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
 import me.engineersbox.playerrev.mysql.Config;
 import me.engineersbox.playerrev.mysql.SQLLink;
 
-public class Commands implements CommandExecutor {
+public class Commands implements CommandExecutor, TabCompleter {
 	
 	public void renderHelp(Player p, String cmdPrefix) {
 		Main.InfoHeader(p, "New Render Help");
@@ -64,7 +68,6 @@ public class Commands implements CommandExecutor {
 			String tHash = p.getUniqueId().toString();
 			boolean useChunky = Config.useChunky();
 			String rankName = "Ranks Disabled";
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 			String coordsstring = null;
 			
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
@@ -109,7 +112,8 @@ public class Commands implements CommandExecutor {
 																	.then("NO")
 																		.color(ChatColor.RED)
 																		.tooltip(JSONMessage.create("Don't create a new render")
-																				.color(ChatColor.GOLD))
+																							.color(ChatColor.GOLD))
+																		.runCommand("/tellraw " + p.getName() + " [\"\",{\"text\":\"[\",\"color\":\"red\"},{\"text\":\"Player Reviewer\",\"color\":\"dark_aqua\"},{\"text\":\"]\",\"color\":\"red\"},{\"text\":\" Ignoring chunky render field\",\"color\":\"aqua\"}]")
 																	.then("]").color(ChatColor.GRAY)
 																	.send(p);
 													}
@@ -136,6 +140,7 @@ public class Commands implements CommandExecutor {
 																		.color(ChatColor.RED)
 																		.tooltip(JSONMessage.create("Don't create a new render")
 																				.color(ChatColor.GOLD))
+																		.runCommand("/tellraw " + p.getName() + " [\"\",{\"text\":\"[\",\"color\":\"red\"},{\"text\":\"Player Reviewer\",\"color\":\"dark_aqua\"},{\"text\":\"]\",\"color\":\"red\"},{\"text\":\" Ignoring chunky render field\",\"color\":\"aqua\"}]")
 																	.then("]").color(ChatColor.GRAY)
 																	.send(p);
 													}
@@ -168,7 +173,7 @@ public class Commands implements CommandExecutor {
 											
 											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
 											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
-											description += "%2A%2ADate Time%2A%2A: " + dtf.format(Main.now) + "%3C%62%72%2F%3E";
+											description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
 											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
 											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
@@ -235,7 +240,7 @@ public class Commands implements CommandExecutor {
 											
 											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
 											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
-											description += "%2A%2ADate Time%2A%2A: " + dtf.format(Main.now) + "%3C%62%72%2F%3E";
+											description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
 											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
 											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
@@ -338,7 +343,7 @@ public class Commands implements CommandExecutor {
 									
 									description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
 									description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
-									description += "%2A%2ADate Time%2A%2A: " + dtf.format(Main.now) + "%3C%62%72%2F%3E";
+									description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
 									description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 									description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
 									description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
@@ -495,13 +500,15 @@ public class Commands implements CommandExecutor {
 						
 						if (p.hasPermission("pr.gotoplot")) {
 							try {
-								
-								if (Main.UseSQL == true) {
-									p.teleport(SQLLink.getPlotLocation(args[1]));
+								if (args[1] != null) {
+									if (Main.UseSQL == true) {
+										p.teleport(SQLLink.getPlotLocation(args[1]));
+									} else {
+										p.teleport(InvConfig.getPlotLocation(args[1]));
+									}
 								} else {
-									p.teleport(InvConfig.getPlotLocation(args[1]));
+									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Invalid syntax!");
 								}
-								
 							} catch (SQLException | FieldValueException se) {
 								p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application Does Not Exist!");
 							}
@@ -826,10 +833,10 @@ public class Commands implements CommandExecutor {
 							                } else {
 							                	
 							                    CameraObject cam = new CameraObject("camera_" + camCount);
-							                    cam.orientation = new orientation();
+							                    cam.orientation = new OrientationChunky();
 							                    cam.orientation.setPitch(p.getLocation().getPitch());
 							                    cam.orientation.setYaw(p.getLocation().getYaw());
-							                    cam.position = new position();
+							                    cam.position = new PositionChunky();
 							                    cam.position.setX(p.getLocation().getX());
 							                    cam.position.setY(p.getLocation().getY());
 							                    cam.position.setZ(p.getLocation().getZ());
@@ -849,10 +856,10 @@ public class Commands implements CommandExecutor {
 				            			cams = new MaxSizeHashMap<String, CameraObject>(Config.maxCamCount());
 				            			
 				            			CameraObject cam = new CameraObject("camera_1");
-					                    cam.orientation = new orientation();
+					                    cam.orientation = new OrientationChunky();
 					                    cam.orientation.setPitch(Math.toRadians(p.getLocation().getPitch()) * (-Math.PI - (Math.PI/2)));
 					                    cam.orientation.setYaw(Math.toRadians(p.getLocation().getYaw()) );
-					                    cam.position = new position();
+					                    cam.position = new PositionChunky();
 					                    cam.position.setX(p.getLocation().getX());
 					                    cam.position.setY(p.getLocation().getY());
 					                    cam.position.setZ(p.getLocation().getZ());
@@ -1168,6 +1175,86 @@ public class Commands implements CommandExecutor {
 		} else {
 			return null;
 		}
+    }
+	
+	public List<String> addToListIfMatched(List<String> list, String valueToAdd, String toMatch) {
+        if (valueToAdd.toLowerCase().startsWith(toMatch.toLowerCase())) {
+            list.add(valueToAdd);
+        }
+        return list;
+    }
+
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+		Player p = (Player) sender;
+		if (!p.hasPermission("pr.use")) {
+			return null;
+		}
+		
+		List<String> comp = new ArrayList<String>();
+		if (cmd.getName().equalsIgnoreCase("pr")) {
+			if (args.length == 0) {
+				comp = addToListIfMatched(comp, "help", "");
+    			comp = addToListIfMatched(comp, "apphelp", "");
+    			comp = addToListIfMatched(comp, "renderhelp", "");
+    			comp = addToListIfMatched(comp, "apply", "");
+    			comp = addToListIfMatched(comp, "validranks", "");
+    			comp = addToListIfMatched(comp, "rate", "");
+    			comp = addToListIfMatched(comp, "gotoplot", "");
+    			comp = addToListIfMatched(comp, "ratings", "");
+    			comp = addToListIfMatched(comp, "approval", "");
+    			comp = addToListIfMatched(comp, "removeapplication", "");
+    			comp = addToListIfMatched(comp, "version", "");
+    			comp = addToListIfMatched(comp, "status", "");
+    			comp = addToListIfMatched(comp, "pos1", "");
+    			comp = addToListIfMatched(comp, "pos2", "");
+    			comp = addToListIfMatched(comp, "cam", "");
+    			comp = addToListIfMatched(comp, "chunkysettings", "");
+    			comp = addToListIfMatched(comp, "setparam", "");
+    			comp = addToListIfMatched(comp, "removeparam", "");
+    			comp = addToListIfMatched(comp, "viewparams", "");
+    			comp = addToListIfMatched(comp, "clearparams", "");
+			} else if (args.length == 1) {
+				comp = addToListIfMatched(comp, "help", args[0]);
+    			comp = addToListIfMatched(comp, "apphelp", args[0]);
+    			comp = addToListIfMatched(comp, "renderhelp", args[0]);
+    			comp = addToListIfMatched(comp, "apply", args[0]);
+    			comp = addToListIfMatched(comp, "validranks", args[0]);
+    			comp = addToListIfMatched(comp, "rate", args[0]);
+    			comp = addToListIfMatched(comp, "gotoplot", args[0]);
+    			comp = addToListIfMatched(comp, "ratings", args[0]);
+    			comp = addToListIfMatched(comp, "approval", args[0]);
+    			comp = addToListIfMatched(comp, "removeapplication", args[0]);
+    			comp = addToListIfMatched(comp, "version", args[0]);
+    			comp = addToListIfMatched(comp, "status", args[0]);
+    			comp = addToListIfMatched(comp, "pos1", args[0]);
+    			comp = addToListIfMatched(comp, "pos2", args[0]);
+    			comp = addToListIfMatched(comp, "cam", args[0]);
+    			comp = addToListIfMatched(comp, "chunkysettings", args[0]);
+    			comp = addToListIfMatched(comp, "setparam", args[0]);
+    			comp = addToListIfMatched(comp, "removeparam", args[0]);
+    			comp = addToListIfMatched(comp, "viewparams", args[0]);
+    			comp = addToListIfMatched(comp, "clearparams", args[0]);
+			} else if (args.length >= 2) {
+				if (args[0].equalsIgnoreCase("removeapplication") || args[0].equalsIgnoreCase("ra") || args[0].equalsIgnoreCase("gotoplot") || args[0].equalsIgnoreCase("rate")) {
+					Set<OfflinePlayer> playerList = new HashSet<>();
+					playerList.addAll((Collection<? extends OfflinePlayer>) Bukkit.getOnlinePlayers());
+					playerList.addAll(Arrays.asList(Bukkit.getOfflinePlayers()));
+					for (OfflinePlayer op : playerList) {
+						comp = addToListIfMatched(comp, op.getName(), args[1]);
+					}
+				} else if (args[0].equalsIgnoreCase("approval")) {
+					comp = addToListIfMatched(comp, "approve", args[1]);
+					comp = addToListIfMatched(comp, "deny", args[1]);
+				} else if (args[0].equalsIgnoreCase("viewparams")) {
+					comp = addToListIfMatched(comp, "raw", args[1]);
+					comp = addToListIfMatched(comp, "list", args[1]);
+				} else if (args[0].equalsIgnoreCase("clearparams")) {
+					comp = addToListIfMatched(comp, "confirm", args[1]);
+					comp = addToListIfMatched(comp, "deny", args[1]);
+				}
+			}
+		}
+		return comp;
     }
 	
 }
