@@ -43,6 +43,8 @@ public class AbstractFile {
         config.addDefault("GitLab-Config.Logins.Address", "http://your.gitlab.server.com");
         config.addDefault("GitLab-Config.Logins.Project-ID", 1);
         config.addDefault("GitLab-Config.Logins.Access-Token", "token");
+        config.addDefault("GitLab-Config.Logins.Render-Link", "https://your.render.server.com/path/to/json-with-links-stored/<UUID>/json");
+        config.addDefault("GitLab-Config.Logins.Render-Link-Queries", "?query=state");
         config.options().copyDefaults(true);
         saveConfig();
     }
