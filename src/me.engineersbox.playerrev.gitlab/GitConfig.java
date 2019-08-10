@@ -24,5 +24,13 @@ public class GitConfig extends AbstractFile {
 	public static int getProjectID() {
 		return config.getInt("GitLab-Config.Logins.Project-ID");
 	}
+	
+	public static String getRenderLink() {
+		return config.getString("GitLab-Config.Logins.Render-Link");
+	}
+	
+	public static String getRenderQuery() {
+		return config.getString("GitLab-Config.Logins.Render-Link-Queries");
+	}
 
 }
