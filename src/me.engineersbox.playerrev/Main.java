@@ -1,19 +1,22 @@
 package me.engineersbox.playerrev;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -29,6 +32,7 @@ import me.engineersbox.playerrev.chunky.CameraObject;
 import me.engineersbox.playerrev.chunky.CoordsObject;
 import me.engineersbox.playerrev.chunky.JSONParameter;
 import me.engineersbox.playerrev.enums.Status;
+import me.engineersbox.playerrev.gitlab.GitLabManager;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
 import me.engineersbox.playerrev.mysql.Config;
@@ -59,12 +63,15 @@ public class Main extends JavaPlugin implements Listener {
 	public static boolean usePlotLoc = false;
 	public static String rankPlugin;
 	public static boolean atConfirm = false;
+	public static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 	public static LocalDateTime now = null;
 	public static Map<UUID, Status> appStatus = new HashMap<UUID, Status>();
 	public static Map<String, CoordsObject> positions = new HashMap<String, CoordsObject>();
 	public static Map<UUID, MaxSizeHashMap<String, CameraObject>> cameras = new HashMap<UUID, MaxSizeHashMap<String, CameraObject>>();
     public static Map<UUID, JSONParameter> paramMap = new HashMap<UUID, JSONParameter>();
     public static Map<UUID, String> chunkList = new HashMap<UUID, String>();
+    public static Map<UUID, String[]> renderChecks = new HashMap<UUID, String[]>();
+    public static ScheduledExecutorService ses = null;
 	
     public void onEnable() {
     	
@@ -89,8 +96,10 @@ public class Main extends JavaPlugin implements Listener {
     	
 		if (Bukkit.getPluginManager().getPlugin("PermissionsEx") != null) {
 			rankPlugin = "pex";
+			Bukkit.getLogger().info("[PlayerReviewer] Registered provider for PermissionsEx");
 		} else if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
 			rankPlugin = "lp";
+			Bukkit.getLogger().info("[PlayerReviewer] Registered provider for LuckPerms");
 		}
 		
 		SpigotUpdater updater = new SpigotUpdater(this, 65535);
@@ -104,7 +113,6 @@ public class Main extends JavaPlugin implements Listener {
     	
     	if(plotsquared != null && plotsquared.isEnabled()) {
     		Bukkit.getLogger().info("[PlayerReviewer] Found plugin PlotSquared! Plot locations enabled");
-    		Bukkit.getLogger().info("[PlayerReviewer] sbpschunky Enabled!");
         	usePlotLoc = Config.usePlotLoc();
         } else {
         	Bukkit.getLogger().log(null, "[PlayerReviewer] Could not find PlotSquared! Reverting To Player Positions");
@@ -144,87 +152,71 @@ public class Main extends JavaPlugin implements Listener {
         getCommand("pr removeparam").setExecutor(new Commands());
         getCommand("pr viewparams").setExecutor(new Commands());
         getCommand("pr clearparams").setExecutor(new Commands());
+        
+        ses = Executors.newSingleThreadScheduledExecutor();
+        Bukkit.getLogger().info("[PlayerReviewer] Initialised new Chunky render finish thread");
+        
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+            	if (!renderChecks.isEmpty()) {
+                	for (Map.Entry<UUID, String[]> entry : renderChecks.entrySet()) {
+                		
+                		Player p = Bukkit.getPlayer(entry.getKey());
+            			String updated_time = GitLabManager.getUpdateTime(p);
+            			
+            			if (updated_time.equals(entry.getValue()[1])) {
+            				List<String> renders = new ArrayList<>();
+            				String renderString = "";
+            				now = LocalDateTime.now();
+            				
+            				try {
+								renders = GitLabManager.getRenderLinks(p);
+								int count = 1;
+								for (String cRender : renders) {
+									renderString += "%2D%20Cam_" + count + "%3A%20%" + cRender + "%3C%62%72%2F%3E";
+								}
+								
+								String description = GitLabManager.getIssueDescription("Application%20for%20" + p.getName())
+	            						.replaceAll("\\*\\*Date Time\\*\\*: [0-9][0-9]\\/[0-9][0-9]\\/[0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\\\\u003cbr\\/\\\\u003e", "%2A%2ADate Time%2A%2A: " + dtf.format(now) + "%3C%62%72%2F%3E")
+	            						.replaceAll("", "%2A%2AChunky Render%2A%2A: " + renderString)
+	            						.replaceAll("\\*", "%2A")
+	            						.replaceAll("\\\\u003cbr\\/\\\\u003e", "%3C%62%72%2F%3E")
+	            						.replaceAll("\\s", "%20")
+	            						.replaceAll("\\.", "%2E")
+	            						.replaceAll("\\@", "%40")
+	            						.replaceAll("\\:", "%3A")
+	            						.replaceAll("\\-", "%2D")
+	            						.replaceAll("`", "%60");
+	            				
+	                			GitLabManager.editIssue("Application%20for%20" + p.getName(), description);
+							} catch (IOException e) {
+								Bukkit.getLogger().info("[PlayerReviewer] GitLab issue creator: could not access chunky render exported JSON for UUID: " + p.getUniqueId().toString());
+							}
+                		}
+                	}
+                }
+            }
+        }, 0, 15, TimeUnit.MINUTES);
     }
     
     @Override
     public void onDisable() {
-    	Bukkit.getLogger().info("[PlayerReviewer] sbpschunky Disabled!");
     	AbstractFile.saveConfig();
     	if (UseSQL == true) {
     		try {
     			MySQL.closeConnection();
+    			Bukkit.getLogger().info("[PlayerReviewer] Closed SQL connection");
     		} catch (SQLException e) {
     			e.printStackTrace();
     		}
     	}
- 
+    	Bukkit.getLogger().info("[PlayerReviewer] Destroyed Chunky render finish thread");
+    	ses.shutdown();
+    	Bukkit.getLogger().info("[PlayerReviewer] sbpschunky Disabled!");
     }
     
-    public List<String> addToListIfMatched(List<String> list, String valueToAdd, String toMatch) {
-        if (valueToAdd.toLowerCase().startsWith(toMatch.toLowerCase())) {
-            list.add(valueToAdd);
-        }
-        return list;
-    }
-
     
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
-    	if (sender instanceof Player) {
-    		Player p = (Player) sender;
-    		if (!p.hasPermission("pr.use")) {
-    			return null;
-    		}
-    		
-    		List<String> comp = new ArrayList<String>();
-    		if (cmd.getName().equals("pr")) {
-    			if (args.length == 0) {
-    				comp = addToListIfMatched(comp, "help", "");
-        			comp = addToListIfMatched(comp, "apphelp", "");
-        			comp = addToListIfMatched(comp, "renderhelp", "");
-        			comp = addToListIfMatched(comp, "apply", "");
-        			comp = addToListIfMatched(comp, "validranks", "");
-        			comp = addToListIfMatched(comp, "rate", "");
-        			comp = addToListIfMatched(comp, "gotoplot", "");
-        			comp = addToListIfMatched(comp, "ratings", "");
-        			comp = addToListIfMatched(comp, "approval", "");
-        			comp = addToListIfMatched(comp, "removeapplication", "");
-        			comp = addToListIfMatched(comp, "version", "");
-        			comp = addToListIfMatched(comp, "status", "");
-        			comp = addToListIfMatched(comp, "pos1", "");
-        			comp = addToListIfMatched(comp, "pos2", "");
-        			comp = addToListIfMatched(comp, "cam", "");
-        			comp = addToListIfMatched(comp, "chunkysettings", "");
-        			comp = addToListIfMatched(comp, "setparam", "");
-        			comp = addToListIfMatched(comp, "removeparam", "");
-        			comp = addToListIfMatched(comp, "viewparams", "");
-        			comp = addToListIfMatched(comp, "clearparams", "");
-    			} else if (args.length == 1) {
-    				comp = addToListIfMatched(comp, "help", args[0]);
-        			comp = addToListIfMatched(comp, "apphelp", args[0]);
-        			comp = addToListIfMatched(comp, "renderhelp", args[0]);
-        			comp = addToListIfMatched(comp, "apply", args[0]);
-        			comp = addToListIfMatched(comp, "validranks", args[0]);
-        			comp = addToListIfMatched(comp, "rate", args[0]);
-        			comp = addToListIfMatched(comp, "gotoplot", args[0]);
-        			comp = addToListIfMatched(comp, "ratings", args[0]);
-        			comp = addToListIfMatched(comp, "approval", args[0]);
-        			comp = addToListIfMatched(comp, "removeapplication", args[0]);
-        			comp = addToListIfMatched(comp, "version", args[0]);
-        			comp = addToListIfMatched(comp, "status", args[0]);
-        			comp = addToListIfMatched(comp, "pos1", args[0]);
-        			comp = addToListIfMatched(comp, "pos2", args[0]);
-        			comp = addToListIfMatched(comp, "cam", args[0]);
-        			comp = addToListIfMatched(comp, "chunkysettings", args[0]);
-        			comp = addToListIfMatched(comp, "setparam", args[0]);
-        			comp = addToListIfMatched(comp, "removeparam", args[0]);
-        			comp = addToListIfMatched(comp, "viewparams", args[0]);
-        			comp = addToListIfMatched(comp, "clearparams", args[0]);
-    			}
-    		}
-    		return comp;
-    	}
-		return null;
-    }
     
     public void playerLogin(PlayerLoginEvent e) {
     	Player p = e.getPlayer();
