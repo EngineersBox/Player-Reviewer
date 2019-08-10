@@ -136,11 +136,13 @@ public class GitLabManager {
 	
 	public static List<String> getRenderLinks(Player p) throws IOException {
 		String geturl = GitConfig.getRenderLink().replaceAll("\\<UUID\\>", p.getUniqueId().toString())
-				+ GitConfig.getRenderQuery();
+				+ "?" + GitConfig.getRenderQuery();
 		URL obj = new URL(geturl);
 		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 		
+		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 		con.setRequestMethod("GET");
+		con.setDoOutput(true);
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String inputLine;
