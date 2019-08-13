@@ -172,7 +172,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 											}
 											
 											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
-											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
+											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId().toString() + "%3C%62%72%2F%3E";
 											description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
 											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
@@ -239,7 +239,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 											}
 											
 											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
-											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
+											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId().toString() + "%3C%62%72%2F%3E";
 											description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
 											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
@@ -330,18 +330,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 								if (GitConfig.useGitLab() && GitLabManager.checkIssueExists("Application%20for%20" + p.getName())) {
 									String description = "";
 									PlotPlayer player = PlotPlayer.wrap(p);
-									List<String> renders = new ArrayList<>();
-									String renderString = "%3C%62%72%2F%3E";
-									renders = GitLabManager.getRenderLinks(p);
-									
-									if (renders.size() > 0) {
-										int count = 1;
-										for (String cRender : renders) {
-											renderString += "%2D%20Cam_" + count + "%3A%20%" + cRender + "%3C%62%72%2F%3E";
-										}
-									} else {
-										renderString = "rendering...%3C%62%72%2F%3E";
-									}
+									String datetime = Main.dtf.format(Main.now);
 									
 									if (Main.usePlotLoc) {
 										try {
@@ -354,19 +343,21 @@ public class Commands implements CommandExecutor, TabCompleter {
 									}
 									
 									description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
-									description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId() + "%3C%62%72%2F%3E";
-									description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
+									description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId().toString() + "%3C%62%72%2F%3E";
+									description += "%2A%2ADate Time%2A%2A: " + datetime + "%3C%62%72%2F%3E";
 									description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 									description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
-									description += "%2A%2AChunky Render%2A%2A: " + renderString;
+									description += "%2A%2AChunky Render%2A%2A:%20rendering...%3C%62%72%2F%3E";
 									description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
-									description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
+									description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D").replaceAll("\\/", "%2F");
 									
-									GitLabManager.editIssue(p, "Application for " + p.getName(), description);
+									GitLabManager.editIssue(p, "Application%20for%20" + p.getName(), description);
+									Main.renderChecks.put(p.getUniqueId(), new String[]{datetime, datetime});
 								}
 							} catch (IOException e) {
 								p.sendMessage(Main.prefix + ChatColor.RED + "An error occured while creating a GitLab issue, please contact an administrator");
 								Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
+								e.printStackTrace();
 							}
 						} else {
 							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
