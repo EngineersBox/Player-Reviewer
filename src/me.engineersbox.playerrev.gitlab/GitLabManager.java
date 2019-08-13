@@ -115,17 +115,23 @@ public class GitLabManager {
 			URL obj = new URL(geturl);
 			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 			
+			con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 			con.setRequestMethod("GET");
+			con.setDoOutput(true);
 			
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
-			String updated_on = null;
+			String updated_on = "";
 			
 			while ((inputLine = in.readLine()) != null) {
 				if (inputLine.contains("sys_updated_on")) {
-					updated_on = StringUtils.substringBetween("\"sys_updated_on\": \"", "\",");
+					updated_on = StringUtils.substringBetween(inputLine, "\"sys_updated_on\": \"", "\",");
+					return updated_on;
 				}
 			}
+			
+			in.close();
+			con.disconnect();
 			
 			return updated_on;
 		} catch (IOException e) {
@@ -134,7 +140,17 @@ public class GitLabManager {
 		}
 	}
 	
-	public static List<String> getRenderLinks(Player p) throws IOException {
+	public static boolean compareDateTime(String date_one, String date_two) {
+		int hour1 = Integer.parseInt(date_one.charAt(11)+""+date_one.charAt(12));
+		int min1 = Integer.parseInt(date_one.charAt(14)+""+date_one.charAt(15));
+		int sec1 = Integer.parseInt(date_one.charAt(17)+""+date_one.charAt(18));
+		int hour2 = Integer.parseInt(date_two.charAt(11)+""+date_two.charAt(12));
+		int min2 = Integer.parseInt(date_two.charAt(14)+""+date_two.charAt(15));
+		int sec2 = Integer.parseInt(date_two.charAt(17)+""+date_two.charAt(18));
+		return hour2 >= hour1 && min2 >= min1 && sec2 >= sec1;
+	}
+	
+	public static List<String> getRenderLinks(Player p) throws IOException, NoSuchFieldException {
 		String geturl = GitConfig.getRenderLink().replaceAll("\\<UUID\\>", p.getUniqueId().toString())
 				+ "?" + GitConfig.getRenderQuery();
 		URL obj = new URL(geturl);
@@ -146,33 +162,46 @@ public class GitLabManager {
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String inputLine;
-		
 		List<String> camList = new ArrayList<>();
 		String created_on = "";
 		String updated_on = "";
+		boolean isDone = false;
+		String desc = getIssueDescription("Application%20for%20" + p.getName());
+		String datetime = StringUtils.substringBetween(desc, "\\*\\*Date Time\\*\\*: ", "\\\\u003cbr\\/\\\\u003e");
 		
 		while ((inputLine = in.readLine()) != null) {
-			if (inputLine.contains("sys_updated_on")) {
-				updated_on = StringUtils.substringBetween("\"sys_updated_on\": \"", "\",");
-			} else if (inputLine.contains("sys_created_on")) {
-				created_on = StringUtils.substringBetween("\"sys_created_on\": \"", "\",");
-				continue;
+			if (inputLine.contains("\"status\": \"Done\"")) {
+				isDone = true;
 			}
-			if (created_on.equals(updated_on) && (!created_on.equals("") && !updated_on.equals(""))) {
-				int[] camCount = IntStream.range(1, Config.maxCamCount()).toArray();
-				for (int c : camCount) {
-					if (inputLine.contains("\"cam_" + c + "\"")) {
-						camList.add(StringUtils.substringBetween("\"cam_" + c + "\": \"", "\","));
+			if (isDone) {
+				if (inputLine.contains("sys_updated_on")) {
+					updated_on = StringUtils.substringBetween(inputLine, "\"sys_updated_on\": \"", "\",");
+					if (!compareDateTime(datetime, updated_on)) {
+						throw new NoSuchFieldException();
+					}
+				} else if (inputLine.contains("sys_created_on")) {
+					created_on = StringUtils.substringBetween(inputLine, "\"sys_created_on\": \"", "\",");
+				}
+				if (!created_on.equals(updated_on) && !created_on.equals("") && !updated_on.equals("")) {
+					int[] camCount = IntStream.range(1, Config.maxCamCount()).toArray();
+					for (int c : camCount) {
+						if (inputLine.contains("\"cam_" + c + "\"")) {
+							String sub = StringUtils.substringBetween(inputLine, "\"cam_" + c + "\": \"", "\",");
+							if (sub != null) { 
+								camList.add(sub);
+							}
+						}
 					}
 				}
-			} else {
-				Main.renderChecks.put(p.getUniqueId(), new String[]{updated_on, created_on});
-				break;
 			}
 		}
 		
 		in.close();
 		con.disconnect();
+		
+		if (camList.size() > 0) {
+			Main.renderChecks.put(p.getUniqueId(), new String[]{updated_on, created_on});
+		}
 		
 		return camList;
 	}
@@ -291,11 +320,12 @@ public class GitLabManager {
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
-					+ "?description=" + desc.replace("false", "true");
+					+ "?description=" + desc;
 			URL obj = new URL(posturl);
 			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
 			con.setRequestMethod("PUT");
+			con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
 			con.setDoOutput(true);
 
