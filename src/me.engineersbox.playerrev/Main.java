@@ -154,27 +154,29 @@ public class Main extends JavaPlugin implements Listener {
         getCommand("pr clearparams").setExecutor(new Commands());
         
         ses = Executors.newSingleThreadScheduledExecutor();
-        Bukkit.getLogger().info("[PlayerReviewer] Initialised new Chunky render finish thread");
+        Bukkit.getLogger().info("[PlayerReviewer] Initialised new Chunky render thread");
         
         ses.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
             	if (!renderChecks.isEmpty()) {
                 	for (Map.Entry<UUID, String[]> entry : renderChecks.entrySet()) {
-                		
+                		Bukkit.getLogger().info("Checking");
                 		Player p = Bukkit.getPlayer(entry.getKey());
             			String updated_time = GitLabManager.getUpdateTime(p);
-            			
-            			if (updated_time.equals(entry.getValue()[1])) {
+            			Bukkit.getLogger().info(updated_time);
+            			Bukkit.getLogger().info(entry.getValue()[1]);
+            			if (GitLabManager.compareDateTime(entry.getValue()[1], updated_time)) {
             				List<String> renders = new ArrayList<>();
             				String renderString = "";
             				now = LocalDateTime.now();
-            				
+            				Bukkit.getLogger().info("Flag2");
             				try {
 								renders = GitLabManager.getRenderLinks(p);
 								int count = 1;
 								for (String cRender : renders) {
-									renderString += "%2D%20Cam_" + count + "%3A%20%" + cRender + "%3C%62%72%2F%3E";
+									renderString += "%2D%20Cam%20" + count + "%3A%20%%3C" + cRender.replaceAll("_", "%5F")
+									+ "%3E%3C%62%72%2F%3E";
 								}
 								
 								String description = GitLabManager.getIssueDescription("Application%20for%20" + p.getName())
@@ -188,16 +190,20 @@ public class Main extends JavaPlugin implements Listener {
 	            						.replaceAll("\\:", "%3A")
 	            						.replaceAll("\\-", "%2D")
 	            						.replaceAll("`", "%60");
-	            				
-	                			GitLabManager.editIssue("Application%20for%20" + p.getName(), description);
+	            				Bukkit.getLogger().info(description);
+	                			GitLabManager.editIssue(p, "Application%20for%20" + p.getName(), description);
 							} catch (IOException e) {
 								Bukkit.getLogger().info("[PlayerReviewer] GitLab issue creator: could not access chunky render exported JSON for UUID: " + p.getUniqueId().toString());
-							}
+							} catch (NoSuchFieldException e) {}
+                		} else {
+                			continue;
                 		}
                 	}
+                } else {
+                	Bukkit.getLogger().info("[PlayerReviewer] No requests to check");
                 }
             }
-        }, 0, 15, TimeUnit.MINUTES);
+        }, 0, 30, TimeUnit.SECONDS);
     }
     
     @Override
