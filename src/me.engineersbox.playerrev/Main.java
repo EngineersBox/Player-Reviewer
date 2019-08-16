@@ -194,7 +194,9 @@ public class Main extends JavaPlugin implements Listener {
 	                			GitLabManager.editIssue(p, "Application%20for%20" + p.getName(), description);
 							} catch (IOException e) {
 								Bukkit.getLogger().info("[PlayerReviewer] GitLab issue creator: could not access chunky render exported JSON for UUID: " + p.getUniqueId().toString());
-							} catch (NoSuchFieldException e) {}
+							} catch (NoSuchFieldException e) {
+							    Bukkit.getLogger().info("[PlayerReviewer] Error whilst getting date for comparison")
+							}
                 		} else {
                 			continue;
                 		}
