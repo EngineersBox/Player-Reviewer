@@ -2,6 +2,7 @@ package me.engineersbox.playerrev;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -40,6 +41,7 @@ public class AbstractFile {
         config.addDefault("Chunky-Config.Use-Chunky", false);
         config.addDefault("Chunky-Config.Max-Camera-Count", 4);
         config.addDefault("GitLab-Config.Use-GitLab", true);
+        config.addDefault("GitLab-Config.In-Progress-Apps", new ArrayList<String>());
         config.addDefault("GitLab-Config.Logins.Address", "http://your.gitlab.server.com");
         config.addDefault("GitLab-Config.Logins.Project-ID", 1);
         config.addDefault("GitLab-Config.Logins.Access-Token", "token");
