@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -32,6 +32,7 @@ import me.engineersbox.playerrev.chunky.CameraObject;
 import me.engineersbox.playerrev.chunky.CoordsObject;
 import me.engineersbox.playerrev.chunky.JSONParameter;
 import me.engineersbox.playerrev.enums.Status;
+import me.engineersbox.playerrev.gitlab.GitConfig;
 import me.engineersbox.playerrev.gitlab.GitLabManager;
 import me.engineersbox.playerrev.methodlib.DynamicEnum;
 import me.engineersbox.playerrev.methodlib.MaxSizeHashMap;
@@ -63,7 +64,8 @@ public class Main extends JavaPlugin implements Listener {
 	public static boolean usePlotLoc = false;
 	public static String rankPlugin;
 	public static boolean atConfirm = false;
-	public static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+	public static boolean renderFlag = false;
+	public static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	public static LocalDateTime now = null;
 	public static Map<UUID, Status> appStatus = new HashMap<UUID, Status>();
 	public static Map<String, CoordsObject> positions = new HashMap<String, CoordsObject>();
@@ -131,6 +133,13 @@ public class Main extends JavaPlugin implements Listener {
     	
     	Config.InitRankConfig();
     	
+    	renderChecks = GitConfig.getInProgressApps();
+    	if (renderChecks.isEmpty()) {
+    		Bukkit.getLogger().info("[PlayerReviewer] No pending applications to load");
+    	} else {
+    		Bukkit.getLogger().info("[PlayerReviewer] Loaded pending applications");
+    	}
+    	
         getCommand("pr").setExecutor(new Commands());
         getCommand("pr help").setExecutor(new Commands());
         getCommand("pr apphelp").setExecutor(new Commands());
@@ -160,52 +169,48 @@ public class Main extends JavaPlugin implements Listener {
             @Override
             public void run() {
             	if (!renderChecks.isEmpty()) {
+            		Bukkit.getLogger().info("[PlayerReviewer] Checking pending render requests...");
                 	for (Map.Entry<UUID, String[]> entry : renderChecks.entrySet()) {
-                		Bukkit.getLogger().info("Checking");
-                		Player p = Bukkit.getPlayer(entry.getKey());
-            			String updated_time = GitLabManager.getUpdateTime(p);
-            			Bukkit.getLogger().info(updated_time);
-            			Bukkit.getLogger().info(entry.getValue()[1]);
+                		OfflinePlayer p = Bukkit.getServer().getPlayer(entry.getKey());
+                		if (p == null) {
+                			p = Bukkit.getServer().getOfflinePlayer(entry.getKey());
+                		}
+            			String updated_time = GitLabManager.getUpdateTime(p.getUniqueId());
             			if (GitLabManager.compareDateTime(entry.getValue()[1], updated_time)) {
-            				List<String> renders = new ArrayList<>();
-            				String renderString = "";
+            				String renderString = "%3C%62%72%2F%3E";
             				now = LocalDateTime.now();
-            				Bukkit.getLogger().info("Flag2");
             				try {
-								renders = GitLabManager.getRenderLinks(p);
+            					List<String> renders = GitLabManager.getRenderLinks(p.getUniqueId());
 								int count = 1;
 								for (String cRender : renders) {
-									renderString += "%2D%20Cam%20" + count + "%3A%20%%3C" + cRender.replaceAll("_", "%5F")
-									+ "%3E%3C%62%72%2F%3E";
+									renderString += "%2D%20Cam%20" + count + "%3A%20%3C" + cRender.replaceAll("_", "%5F") + "%3E%3C%62%72%2F%3E";
+									count++;
 								}
-								
 								String description = GitLabManager.getIssueDescription("Application%20for%20" + p.getName())
 	            						.replaceAll("\\*\\*Date Time\\*\\*: [0-9][0-9]\\/[0-9][0-9]\\/[0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\\\\u003cbr\\/\\\\u003e", "%2A%2ADate Time%2A%2A: " + dtf.format(now) + "%3C%62%72%2F%3E")
-	            						.replaceAll("", "%2A%2AChunky Render%2A%2A: " + renderString)
 	            						.replaceAll("\\*", "%2A")
+	            						.replaceAll("rendering\\.\\.\\.", renderString)
 	            						.replaceAll("\\\\u003cbr\\/\\\\u003e", "%3C%62%72%2F%3E")
 	            						.replaceAll("\\s", "%20")
 	            						.replaceAll("\\.", "%2E")
 	            						.replaceAll("\\@", "%40")
 	            						.replaceAll("\\:", "%3A")
 	            						.replaceAll("\\-", "%2D")
+	            						.replaceAll("\\/", "%2F")
 	            						.replaceAll("`", "%60");
-	            				Bukkit.getLogger().info(description);
-	                			GitLabManager.editIssue(p, "Application%20for%20" + p.getName(), description);
-							} catch (IOException e) {
+	            				Bukkit.getLogger().info("Found links, adding to issue (ID: " + GitLabManager.getIssueID("Application%20for%20" + p.getName()) + ")");
+	                			GitLabManager.editIssue((Player) p, "Application%20for%20" + p.getName(), description);
+	                			renderChecks.remove(p.getUniqueId());
+            				} catch (IOException e) {
 								Bukkit.getLogger().info("[PlayerReviewer] GitLab issue creator: could not access chunky render exported JSON for UUID: " + p.getUniqueId().toString());
-							} catch (NoSuchFieldException e) {
-							    Bukkit.getLogger().info("[PlayerReviewer] Error whilst getting date for comparison")
 							}
                 		} else {
                 			continue;
                 		}
                 	}
-                } else {
-                	Bukkit.getLogger().info("[PlayerReviewer] No requests to check");
                 }
             }
-        }, 0, 30, TimeUnit.SECONDS);
+        }, 0, 1, TimeUnit.MINUTES);
     }
     
     @Override
@@ -220,8 +225,10 @@ public class Main extends JavaPlugin implements Listener {
     		}
     	}
     	Bukkit.getLogger().info("[PlayerReviewer] Destroyed Chunky render finish thread");
+    	Bukkit.getLogger().info("[PlayerReviewer] Saving pending applications...");
+    	GitConfig.setInProgressApps(renderChecks);
+    	Bukkit.getLogger().info("[PlayerReviewer] Saved pending applications");
     	ses.shutdown();
-    	Bukkit.getLogger().info("[PlayerReviewer] sbpschunky Disabled!");
     }
     
     
