@@ -146,6 +146,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 													}
 												}
 											}
+											Main.renderFlag = true;
 										} else {
 											if (Main.useRanksInApplication) {
 												InvConfig.newApp(p, p.getName(), rankName.toString().toLowerCase());
@@ -177,7 +178,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
 											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
-											description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
+											description += "%2A%2ABuild Warp%2A%2A: %60/tp " + Lib.getLoc(coordsstring).getWorld().getName() + " " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
 											description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
 											try {
 												GitLabManager.addIssue(p, "Application for " + p.getName(), description);
@@ -244,7 +245,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
 											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
-											description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
+											description += "%2A%2ABuild Warp%2A%2A: %60/tp " + Lib.getLoc(coordsstring).getWorld().getName() + " " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
 											description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
 											try {
 												GitLabManager.addIssue(p, "Application for " + p.getName(), description);
@@ -326,6 +327,9 @@ public class Commands implements CommandExecutor, TabCompleter {
 						
 						if (p.hasPermission("pr.renderhelp") && Config.useExternalRenders()) {
 							renderHelp(p, Config.externalRenderPrefix());
+							if (!Main.renderFlag) {
+								return true;
+							}
 							try {
 								if (GitConfig.useGitLab() && GitLabManager.checkIssueExists("Application%20for%20" + p.getName())) {
 									String description = "";
@@ -348,9 +352,13 @@ public class Commands implements CommandExecutor, TabCompleter {
 									description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
 									description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
 									description += "%2A%2AChunky Render%2A%2A:%20rendering...%3C%62%72%2F%3E";
-									description += "%2A%2ABuild Warp%2A%2A: %60/tp @p " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
-									description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D").replaceAll("\\/", "%2F");
-									
+									description += "%2A%2ABuild Warp%2A%2A: %60/prtp " + Lib.getLoc(coordsstring).getWorld().getName() + " " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
+									description = description.replaceAll("\\s", "%20")
+											   				 .replaceAll("\\.", "%2E")
+										   					 .replaceAll("\\@", "%40")
+										   					 .replaceAll("\\:", "%3A")
+										   					 .replaceAll("\\-", "%2D")
+										   					 .replaceAll("\\/", "%2F");
 									GitLabManager.editIssue(p, "Application%20for%20" + p.getName(), description);
 									Main.renderChecks.put(p.getUniqueId(), new String[]{datetime, datetime});
 								}
@@ -359,6 +367,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 								Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
 								e.printStackTrace();
 							}
+							Main.renderFlag = false;
 						} else {
 							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
@@ -693,6 +702,10 @@ public class Commands implements CommandExecutor, TabCompleter {
 									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
 								} catch (IOException e) {
 									Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
+								}
+								
+								if (Main.renderChecks.containsKey(p.getUniqueId())) {
+									Main.renderChecks.remove(p.getUniqueId());
 								}
 								
 							} else {
