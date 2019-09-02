@@ -68,7 +68,7 @@ As it stands, currently the only permissions plugin supported are PermissionsEx 
 * **pr.apphelp** - *allows the use of /pr apphelp*
 * **pr.status** - *allows the use of /pr status*
 * **pr.submissions** - *allows the use of /pr submissions*
-* **pr.removesubmissions** - *allows the use of /pr removesubmissions*
+* **pr.removesubmission** - *allows the use of /pr removesubmissions*
 * **pr.pos1** - *allows the use of /pr pos1*
 * **pr.pos2** - *allows the use of /pr pos2*
 * **pr.cam** - *allows the use of /pr cam*
