@@ -2,7 +2,6 @@ package me.engineersbox.playerrev;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,6 +36,7 @@ import me.engineersbox.playerrev.exceptions.InvalidGroupException;
 import me.engineersbox.playerrev.exceptions.PlotInheritanceException;
 import me.engineersbox.playerrev.gitlab.GitConfig;
 import me.engineersbox.playerrev.gitlab.GitLabManager;
+import me.engineersbox.playerrev.gitlab.GitLib;
 import me.engineersbox.playerrev.methodlib.GroupPlugins;
 import me.engineersbox.playerrev.methodlib.HoverText;
 import me.engineersbox.playerrev.methodlib.JSONMessage;
@@ -69,6 +69,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 			boolean useChunky = Config.useChunky();
 			String rankName = "Ranks Disabled";
 			String coordsstring = null;
+			boolean multi_build = GitConfig.maxAppCount() > 1;
 			
 			if ((cmd.getName().equalsIgnoreCase("pr")) && (p.hasPermission("pr.use"))) {
 					
@@ -99,23 +100,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 													SQLLink.newApp(p, p.getName(), rankName.toLowerCase(),  null);
 													p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 													if (Config.useExternalRenders()) {
-														JSONMessage.create(Main.prefix)
-																	.then("Would you like to get a render of your build? ")
-																		.color(ChatColor.AQUA)
-																	.then("[").color(ChatColor.GRAY)
-																	.then("YES")
-																		.color(ChatColor.GREEN)
-																		.tooltip(JSONMessage.create("Show the steps to create a new render of your build")
-																							.color(ChatColor.GOLD))
-																		.runCommand("/pr renderhelp")
-																	.then("][").color(ChatColor.GRAY)
-																	.then("NO")
-																		.color(ChatColor.RED)
-																		.tooltip(JSONMessage.create("Don't create a new render")
-																							.color(ChatColor.GOLD))
-																		.runCommand("/tellraw " + p.getName() + " [\"\",{\"text\":\"[\",\"color\":\"red\"},{\"text\":\"Player Reviewer\",\"color\":\"dark_aqua\"},{\"text\":\"]\",\"color\":\"red\"},{\"text\":\" Ignoring chunky render field\",\"color\":\"aqua\"}]")
-																	.then("]").color(ChatColor.GRAY)
-																	.send(p);
+														GitLib.renderQuery(p);
 													}
 												}
 											} else {
@@ -126,23 +111,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 													SQLLink.newApp(p, p.getName(), null,  null);
 													p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 													if (Config.useExternalRenders()) {
-														JSONMessage.create(Main.prefix)
-																	.then("Would you like to get a render of your build?")
-																		.color(ChatColor.DARK_AQUA)
-																	.then("[").color(ChatColor.GRAY)
-																	.then("YES")
-																		.color(ChatColor.GREEN)
-																		.tooltip(JSONMessage.create("Show the steps to create a new render of your build")
-																				.color(ChatColor.GOLD))
-																		.runCommand("/pr renderhelp")
-																	.then("][").color(ChatColor.GRAY)
-																	.then("NO")
-																		.color(ChatColor.RED)
-																		.tooltip(JSONMessage.create("Don't create a new render")
-																				.color(ChatColor.GOLD))
-																		.runCommand("/tellraw " + p.getName() + " [\"\",{\"text\":\"[\",\"color\":\"red\"},{\"text\":\"Player Reviewer\",\"color\":\"dark_aqua\"},{\"text\":\"]\",\"color\":\"red\"},{\"text\":\" Ignoring chunky render field\",\"color\":\"aqua\"}]")
-																	.then("]").color(ChatColor.GRAY)
-																	.send(p);
+														GitLib.renderQuery(p);
 													}
 												}
 											}
@@ -158,41 +127,24 @@ public class Commands implements CommandExecutor, TabCompleter {
 										}
 										
 										if (GitConfig.useGitLab()) {
-											String description = "";
-											Main.now = LocalDateTime.now();
-											PlotPlayer player = PlotPlayer.wrap(p);
-											
-											if (Main.usePlotLoc) {
-												try {
-													coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
-												} catch (Exception e) {
-													coordsstring = Lib.getCoordsString(p.getLocation());
-												}
-											} else {
-												coordsstring = Lib.getCoordsString(p.getLocation());
-											}
-											
-											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
-											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId().toString() + "%3C%62%72%2F%3E";
-											description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
-											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
-											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
-											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
-											description += "%2A%2ABuild Warp%2A%2A: %60/tp " + Lib.getLoc(coordsstring).getWorld().getName() + " " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
-											description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
-											try {
-												GitLabManager.addIssue(p, "Application for " + p.getName(), description);
-											} catch (IOException e) {
-												p.sendMessage(Main.prefix + ChatColor.RED + "An error occured while creating a GitLab issue, please contact an administrator");
-												Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
-											}
+											GitLib.issueInit(p, coordsstring, rankName);
 										}
 										
 										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
 										
 										
 									} catch (SQLException | FieldValueException e) {
-										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+										if (!multi_build) {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+										} else if (multi_build && GitConfig.getIssueCount(p.getUniqueId()) < GitConfig.maxAppCount()) {
+											if (Config.useExternalRenders()) {
+												GitLib.renderQuery(p);
+											}
+											Main.renderFlag = true;
+											if (GitConfig.useGitLab()) {
+												GitLib.issueInit(p, coordsstring, rankName);
+											}
+										}
 									} catch (PlotInheritanceException e) {
 										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
 									} catch (ChunkyParameterException e) {
@@ -225,41 +177,23 @@ public class Commands implements CommandExecutor, TabCompleter {
 										p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Submitted!");
 										
 										if (GitConfig.useGitLab()) {
-											String description = "";
-											Main.now = LocalDateTime.now();
-											PlotPlayer player = PlotPlayer.wrap(p);
-											
-											if (Main.usePlotLoc) {
-												try {
-													coordsstring = Lib.getCoordsString(Lib.playerOwnsPlot(player, player.getApplicablePlotArea().getPlot(player.getLocation())));
-												} catch (Exception e) {
-													coordsstring = Lib.getCoordsString(p.getLocation());
-												}
-											} else {
-												coordsstring = Lib.getCoordsString(p.getLocation());
-											}
-											
-											description += "%2A%2APlayer Name%2A%2A: " + p.getName() + "%3C%62%72%2F%3E";
-											description += "%2A%2APlayer UUID%2A%2A: " + p.getUniqueId().toString() + "%3C%62%72%2F%3E";
-											description += "%2A%2ADate Time%2A%2A: " + Main.dtf.format(Main.now) + "%3C%62%72%2F%3E";
-											description += "%2A%2ABuild Coordinates%2A%2A: " + coordsstring + "%3C%62%72%2F%3E";
-											description += "%2A%2ARank%2A%2A: " + rankName.toLowerCase() + "%3C%62%72%2F%3E";
-											description += "%2A%2AChunky Render%2A%2A: " + false + "%3C%62%72%2F%3E";
-											description += "%2A%2ABuild Warp%2A%2A: %60/tp " + Lib.getLoc(coordsstring).getWorld().getName() + " " + Lib.getLoc(coordsstring).getX() + " " + Lib.getLoc(coordsstring).getY() + " " + (Lib.getLoc(coordsstring).getZ() + 1) + "%60";
-											description = description.replaceAll("\\s", "%20").replaceAll("\\.", "%2E").replaceAll("\\@", "%40").replaceAll("\\:", "%3A").replaceAll("\\-", "%2D");
-											try {
-												GitLabManager.addIssue(p, "Application for " + p.getName(), description);
-											} catch (IOException e) {
-												p.sendMessage(Main.prefix + ChatColor.RED + "An error occured while creating a GitLab issue, please contact an administrator");
-												Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: unknown error");
-											}
+											GitLib.issueInit(p, coordsstring, rankName);
 										}
 										
 										Main.appStatus.put(p.getUniqueId(), Status.AWAITING_REVIEW);
 										
 									} catch (SQLException | FieldValueException e) {
-										Bukkit.getLogger().info(e.toString());
-										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+										if (!multi_build) {
+											p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + p.getDisplayName() + " Already Exists!");
+										} else if (multi_build && GitConfig.getIssueCount(p.getUniqueId()) < GitConfig.maxAppCount()) {
+											if (Config.useExternalRenders()) {
+												GitLib.renderQuery(p);
+											}
+											Main.renderFlag = true;
+											if (GitConfig.useGitLab()) {
+												GitLib.issueInit(p, coordsstring, rankName);
+											}
+										}
 									} catch (PlotInheritanceException e) {
 										p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Plot Is Not Owned By Player: " + p.getDisplayName());
 									} catch (ChunkyParameterException e) {
@@ -298,23 +232,29 @@ public class Commands implements CommandExecutor, TabCompleter {
 								Class.forName("net.md_5.bungee.api.chat.TextComponent");
 								p.sendMessage(ChatColor.AQUA + "Hover over a command to see a description");
 								HoverText.HoverMessage(p, "&0> &2/pr validranks", Arrays.asList("&6Description:", "&cDisplays All Ranks That Can Be Applied For"));
-								HoverText.HoverMessage(p, "&0> &2/pr apply <rank>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
+								HoverText.HoverMessage(p, "&0> &2/pr apply [<rank>]", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
 								HoverText.HoverMessage(p, "&0> &2/pr removeapplication <name>", Arrays.asList("&6Description:", "&cRemove An Open Application"));
 								HoverText.HoverMessage(p, "&0> &2/pr approval <player> <approve/deny>", Arrays.asList("&6Description:", "&cApprove Or Deny An Application"));
 								HoverText.HoverMessage(p, "&0> &2/pr ratings <player>", Arrays.asList("&6Description:", "&cSubmit An Application For A Rank"));
 								HoverText.HoverMessage(p, "&0> &2/pr rate <player> <criteria>", Arrays.asList("&6Description:", "&cSubmit A Rating To A Player's Open Application"));
 								HoverText.HoverMessage(p, "&0> &2/pr gotoplot <player>", Arrays.asList("&6Description:", "&cTeleports To Player's Open Application Plot"));
+								HoverText.HoverMessage(p, "&0> &2/pr status", Arrays.asList("&6Description:", "&cView The Status Of The Current Application"));
+								HoverText.HoverMessage(p, "&0> &2/pr submissions", Arrays.asList("&6Description:", "&cView All Submissions For Current Application"));
+								HoverText.HoverMessage(p, "&0> &2/pr removesubmission <id>", Arrays.asList("&6Description:", "&cRemoves A Submission From Current Submissions In Application"));
 								HoverText.HoverMessage(p, "&0> &2/pr version", Arrays.asList("&6Description:", "&cDisplays The Plugin Version And Author"));
 								HoverText.HoverMessage(p, "&0> &2/pr help", Arrays.asList("&6Description:", "&cOpens This Menu"));
 							} catch (ClassNotFoundException e) {
 								
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr validranks" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Displays All Ranks That Can Be Applied For");
-								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr apply <rank>" + ChatColor.WHITE + " :: " + ChatColor.GOLD + "Submit An Application For A Rank");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr apply [<rank>]" + ChatColor.WHITE + " :: " + ChatColor.GOLD + "Submit An Application For A Rank");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr removeapplication <name>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Remove An Open Application");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr approval <player> <approve/deny>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Approve Or Deny An Application");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr ratings <player>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Submit An Application For A Rank");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr rate <player> <criteria>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Submit A Rating To A Player's Open Application");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr gotoplot <player>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Teleports To Player's Open Application Plot");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr status" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "View The Status Of The Current Application");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr submissions" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "View All Submissions For Current Application");
+								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr removesubmission <id>" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Removes A Submission From Current Submissions In Application");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr version" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Displays The Plugin Version And Author");
 								p.sendMessage(ChatColor.BLACK + "> " + ChatColor.DARK_GREEN + "/pr help" + ChatColor.WHITE + " :: " + ChatColor.GOLD +  "Opens This Menu");
 							}
@@ -331,7 +271,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 								return true;
 							}
 							try {
-								if (GitConfig.useGitLab() && GitLabManager.checkIssueExists("Application%20for%20" + p.getName())) {
+								if (GitConfig.useGitLab() && GitLabManager.checkIssueExists("Application%20for%20" + p.getName() + " %5B" + GitConfig.getIssueCount(p.getUniqueId()) + "%5D")) {
 									String description = "";
 									PlotPlayer player = PlotPlayer.wrap(p);
 									String datetime = Main.dtf.format(Main.now);
@@ -359,7 +299,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 										   					 .replaceAll("\\:", "%3A")
 										   					 .replaceAll("\\-", "%2D")
 										   					 .replaceAll("\\/", "%2F");
-									GitLabManager.editIssue(p, "Application%20for%20" + p.getName(), description);
+									GitLabManager.editIssue(p, "Application%20for%20" + p.getName() + " %5B" + GitConfig.getIssueCount(p.getUniqueId()) + "%5D", description);
 									Main.renderChecks.put(p.getUniqueId(), new String[]{datetime, datetime});
 								}
 							} catch (IOException e) {
@@ -400,6 +340,62 @@ public class Commands implements CommandExecutor, TabCompleter {
 								}
 							}
 							Main.InfoHeader(p, "Application Submission Help");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if (args[0].equalsIgnoreCase("submissions")) {
+						
+						if (p.hasPermission("pr.submissions")) {
+							Main.InfoHeader(p, p.getName() + " Build Submissions");
+							p.sendMessage(ChatColor.BLACK + " - " + ChatColor.RED + "Submission Count: " + ChatColor.GREEN + GitConfig.getIssueCount(p.getUniqueId()) + "/" + GitConfig.maxAppCount());
+							p.sendMessage(ChatColor.BLACK + " - " + ChatColor.RED + "Links:  " + ChatColor.GREEN + " Click on " + ChatColor.ITALIC + ChatColor.DARK_PURPLE + "\'issue link\'" + ChatColor.RESET + ChatColor.GREEN + " to go to issue");
+							p.sendMessage("");
+							int count = 1;
+							for (String id : GitConfig.getIssuesList(p.getUniqueId())) {
+								JSONMessage.create(count + ". ").color(ChatColor.GRAY)
+											.then(" ID: ")
+												.color(ChatColor.GOLD)
+											.then(id + " ")
+												.color(ChatColor.AQUA)
+											.then("Link: ")
+												.color(ChatColor.GOLD)
+											.then("issue link")
+												.color(ChatColor.AQUA)
+												.tooltip(JSONMessage.create(GitLib.issueLink(id))
+														.color(ChatColor.BLUE)
+														.style(ChatColor.UNDERLINE))
+												.openURL(GitLib.issueLink(id))
+											.send(p);
+								count++;
+							}
+							Main.InfoHeader(p, p.getName() + " Build Submissions");
+						} else {
+							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
+						}
+						
+					} else if ((args[0].equalsIgnoreCase("removesubmission")) | (args[0].equalsIgnoreCase("rs")) | (args[0].equalsIgnoreCase("rs"))) {
+						
+						if (p.hasPermission("pr.validranks")) {
+							if (args.length > 1) {
+								try {
+									List<String> ids = GitConfig.getIssuesList(p.getUniqueId());
+									int prev_index = ids.indexOf(args[1]);
+									GitConfig.removeIssueId(p.getUniqueId(), args[1]);
+									GitLabManager.removeIssueById(p, args[1]);
+									p.sendMessage(Main.prefix + ChatColor.AQUA + "Removed issue with ID: " + ChatColor.GOLD + args[1]);
+									ids = GitConfig.getIssuesList(p.getUniqueId());
+									for (int i = ids.size(); i > prev_index; i--) {
+										GitLabManager.editIssueTitle(p, "Application for " + p.getName() + " %5B" + i + "%5D", ids.get(i-1));
+									}
+								} catch (IOException e) {
+									Bukkit.getLogger().info("[Player Reviewer] Issue does not exist");
+								}
+							} else {
+								List<String> ids = GitConfig.getIssuesList(p.getUniqueId());
+								GitConfig.removeIssueId(p.getUniqueId(), ids.get(ids.size() - 1));
+								p.sendMessage(Main.prefix + ChatColor.AQUA + "No ID specified, removing latest ID: " + ChatColor.GOLD + ids.get(ids.size() - 1));
+							}
 						} else {
 							p.sendMessage(Main.prefix + ChatColor.RED + "You do not have permission");
 						}
@@ -625,7 +621,10 @@ public class Commands implements CommandExecutor, TabCompleter {
 										}
 										
 										if (GitConfig.useGitLab()) {
-											GitLabManager.removeIssue(p, "Application%20for%20" + p.getName());
+											for (String id : GitConfig.getIssuesList(p.getUniqueId())) {
+												GitLabManager.removeIssueById(p, id);
+											}
+											GitConfig.removeAllIssues(p.getUniqueId());
 										}
 										
 										if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1]))) {
@@ -645,6 +644,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 										
 										if (GitConfig.useGitLab()) {
 											GitLabManager.removeIssue(p, "Application%20for%20" + p.getName());
+											GitConfig.removeAllIssues(p.getUniqueId());
 										}
 										
 										if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1]))) {
@@ -653,6 +653,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 										} else {
 											Main.appStatus.put(Bukkit.getPlayer(args[1]).getUniqueId(), Status.DENIED);
 										}
+										
 										
 									} else {
 										
@@ -694,9 +695,13 @@ public class Commands implements CommandExecutor, TabCompleter {
 										 InvConfig.removeApp(args[1]);
 									 }
 									 if (GitConfig.useGitLab()) {
-											GitLabManager.removeIssue(p, "Application%20for%20" + p.getName());
+											for (String id : GitConfig.getIssuesList(p.getUniqueId())) {
+												GitLabManager.removeIssueById(p, id);
+												GitConfig.removeIssueId(p.getUniqueId(), id);
+											}
 										}
 									 p.sendMessage(Main.prefix + ChatColor.AQUA + "Application Removed!");
+									 GitConfig.removeAllIssues(p.getUniqueId());
 									
 								} catch (SQLException | ClassNotFoundException | FieldValueException e) {
 									p.sendMessage(Main.prefix + ChatColor.LIGHT_PURPLE + "Application For " + args[1] + " Does Not Exist!");
@@ -1221,6 +1226,8 @@ public class Commands implements CommandExecutor, TabCompleter {
     			comp = addToListIfMatched(comp, "removeapplication", "");
     			comp = addToListIfMatched(comp, "version", "");
     			comp = addToListIfMatched(comp, "status", "");
+    			comp = addToListIfMatched(comp, "submissions", "");
+    			comp = addToListIfMatched(comp, "removesubmission", "");
     			comp = addToListIfMatched(comp, "pos1", "");
     			comp = addToListIfMatched(comp, "pos2", "");
     			comp = addToListIfMatched(comp, "cam", "");
@@ -1242,6 +1249,8 @@ public class Commands implements CommandExecutor, TabCompleter {
     			comp = addToListIfMatched(comp, "removeapplication", args[0]);
     			comp = addToListIfMatched(comp, "version", args[0]);
     			comp = addToListIfMatched(comp, "status", args[0]);
+    			comp = addToListIfMatched(comp, "submissions", args[0]);
+    			comp = addToListIfMatched(comp, "removesubmission", args[0]);
     			comp = addToListIfMatched(comp, "pos1", args[0]);
     			comp = addToListIfMatched(comp, "pos2", args[0]);
     			comp = addToListIfMatched(comp, "cam", args[0]);
@@ -1267,6 +1276,10 @@ public class Commands implements CommandExecutor, TabCompleter {
 				} else if (args[0].equalsIgnoreCase("clearparams")) {
 					comp = addToListIfMatched(comp, "confirm", args[1]);
 					comp = addToListIfMatched(comp, "deny", args[1]);
+				} else if (args[0].equals("removesubmission")) {
+					for (String id : GitConfig.getIssuesList(p.getUniqueId())) {
+						comp = addToListIfMatched(comp, id, args[1]);
+					}
 				}
 			}
 		}
