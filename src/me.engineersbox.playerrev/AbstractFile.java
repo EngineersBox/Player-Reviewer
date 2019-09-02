@@ -36,6 +36,7 @@ public class AbstractFile {
         config.addDefault("Application-Settings.Use-Ranks-In-Application", true);
         config.addDefault("Application-Settings.Application-Ranks", "guest[GUEST:guest],squire,knight,baron,builder,head_builder,senior_builder");
         config.addDefault("Application-Settings.In-Game-Rating", true);
+        config.addDefault("Application-Settings.Max-Application-Count", 10);
         config.addDefault("External-Renders.Use-External", false);
         config.addDefault("External-Renders.Render-Command-Prefix", "rs");
         config.addDefault("Chunky-Config.Use-Chunky", false);
@@ -47,6 +48,7 @@ public class AbstractFile {
         config.addDefault("GitLab-Config.Logins.Access-Token", "token");
         config.addDefault("GitLab-Config.Logins.Render-Link", "https://your.render.server.com/path/to/json-with-links-stored/<UUID>/json");
         config.addDefault("GitLab-Config.Logins.Render-Link-Queries", "?query=state");
+        config.addDefault("Player-Applications", new ArrayList<String>());
         config.options().copyDefaults(true);
         saveConfig();
     }
