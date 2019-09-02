@@ -43,6 +43,31 @@ public class GitLabManager {
 		return !response.toString().equals("[]");
 	}
 	
+	public static boolean checkIssueExistsId(String id) throws IOException {
+		String geturl = GitConfig.getGitAddress()
+				+ "/api/v4/projects/"
+				+ GitConfig.getProjectID() + "/"
+				+ "issues/" + id;
+		URL obj = new URL(geturl);
+		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+		
+		con.setRequestMethod("GET");
+		con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+		
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+
+		while ((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		
+		in.close();
+		con.disconnect();
+
+		return !response.toString().equals("{\"message\":\"404 Not found\"}");
+	}
+	
 	public static String getIssueID(String title) throws IOException {
 		String geturl = GitConfig.getGitAddress()
 				+ "/api/v4/projects/"
@@ -246,25 +271,57 @@ public class GitLabManager {
 	}
 	
 	private static void closeIssue(Player p, String title) throws IOException {
-		String posturl = GitConfig.getGitAddress()
-				+ "/api/v4/projects/"
-				+ GitConfig.getProjectID() + "/"
-				+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
-				+ "?state_event=close";
-		URL obj = new URL(posturl);
-		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+		boolean response = checkIssueExists(title);
+		if (response) {
+			String posturl = GitConfig.getGitAddress()
+					+ "/api/v4/projects/"
+					+ GitConfig.getProjectID() + "/"
+					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
+					+ "?state_event=close";
+			URL obj = new URL(posturl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
-		con.setRequestMethod("PUT");
-		con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-		con.setDoOutput(true);
+			con.setRequestMethod("PUT");
+			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+			con.setDoOutput(true);
 
-		int responseCode = con.getResponseCode();
-		con.disconnect();
-		
-		Bukkit.getLogger().info(
-				GitLabStatusCodes.valueOf("S" + responseCode) != null ?
-				GitLabStatusCodes.valueOf("S" + responseCode).getResponse()
-				: "[Player Reviewer] GitLab issue creator: unknown error");
+			int responseCode = con.getResponseCode();
+			con.disconnect();
+			
+			Bukkit.getLogger().info(
+					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
+					GitLabStatusCodes.valueOf("S" + responseCode).getResponse()
+					: "[Player Reviewer] GitLab issue creator: unknown error");
+		} else {
+			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue does not exit, cannot delete");
+		}
+	}
+	
+	private static void closeIssueId(Player p, String id) throws IOException {
+		boolean response = checkIssueExistsId(id);
+		if (response) {
+			String posturl = GitConfig.getGitAddress()
+					+ "/api/v4/projects/"
+					+ GitConfig.getProjectID() + "/"
+					+ "issues/" + id
+					+ "?state_event=close";
+			URL obj = new URL(posturl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			con.setRequestMethod("PUT");
+			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+			con.setDoOutput(true);
+
+			int responseCode = con.getResponseCode();
+			con.disconnect();
+			
+			Bukkit.getLogger().info(
+					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
+					GitLabStatusCodes.valueOf("S" + responseCode).getResponse()
+					: "[Player Reviewer] GitLab issue creator: unknown error");
+		} else {
+			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue does not exit, cannot delete");
+		}
 	}
 	
 	public static void removeIssue(Player p, String title) throws IOException {
@@ -293,7 +350,37 @@ public class GitLabManager {
 						: "[Player Reviewer] GitLab issue creator: unknown error");
 			}
 		} else {
-			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue does not exit, cannot delete");
+			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue does not exist, cannot delete");
+		}
+	}
+	
+	public static void removeIssueById(Player p, String id) throws IOException {
+		boolean response = checkIssueExistsId(id);
+		if (response) {
+			String delurl = GitConfig.getGitAddress()
+					+ "/api/v4/projects/"
+					+ GitConfig.getProjectID() + "/"
+					+ "issues/" + id;
+			URL obj = new URL(delurl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+			
+			con.setRequestMethod("DELETE");
+			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+			con.setDoOutput(true);
+
+			int responseCode = con.getResponseCode();
+			con.disconnect();
+			
+			if (responseCode == 403) {
+				closeIssueId(p, id);
+			} else {
+				Bukkit.getLogger().info(
+						GitLabStatusCodes.valueOf("S" + responseCode) != null ?
+						GitLabStatusCodes.valueOf("S" + responseCode).getResponse()
+						: "[Player Reviewer] GitLab issue creator: unknown error");
+			}
+		} else {
+			Bukkit.getLogger().info("[Player Reviewer] GitLab issue creator: issue does not exist, cannot delete");
 		}
 	}
 	
@@ -304,6 +391,34 @@ public class GitLabManager {
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
 					+ "?description=" + desc;
+			URL obj = new URL(puturl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+			
+			con.setRequestMethod("PUT");
+			con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+			con.setDoOutput(true);
+			
+			int responseCode = con.getResponseCode();
+			con.disconnect();
+			
+			Bukkit.getLogger().info(
+					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
+					GitLabStatusCodes.valueOf("S" + responseCode).getResponse()
+					: "[Player Reviewer] GitLab issue creator: unknown error");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public static void editIssueTitle(Player p, String title, String id) {
+		try {
+			String puturl = GitConfig.getGitAddress()
+					+ "/api/v4/projects/"
+					+ GitConfig.getProjectID() + "/"
+					+ "issues/" + id
+					+ "?title=" + title.replaceAll("\\s", "%20");
 			URL obj = new URL(puturl);
 			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 			
