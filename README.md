@@ -39,6 +39,8 @@ As it stands, currently the only permissions plugin supported are PermissionsEx 
 * **/pr help** - *Displays Plugin Help Information*
 * **/pr apphelp** - *Displays application submission help*
 * **/pr status** - *Displays player application status*
+* **/pr submissions** - *Displays submissions and their ID's respective to the current application*
+* **/pr removesubmission \<id\>** - *Remove a submission from the current application* **\[ALIASES: rs\]**
 * **/pr pos1** - *Register chunky position 1*
 * **/pr pos1** - *Register chunky position 2*
 * **/pr cam** - *Register a chunky camera*
@@ -65,6 +67,8 @@ As it stands, currently the only permissions plugin supported are PermissionsEx 
 * **pr.help** - *allows the use of /pr help*
 * **pr.apphelp** - *allows the use of /pr apphelp*
 * **pr.status** - *allows the use of /pr status*
+* **pr.submissions** - *allows the use of /pr submissions*
+* **pr.removesubmissions** - *allows the use of /pr removesubmissions*
 * **pr.pos1** - *allows the use of /pr pos1*
 * **pr.pos2** - *allows the use of /pr pos2*
 * **pr.cam** - *allows the use of /pr cam*
