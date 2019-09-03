@@ -87,6 +87,9 @@ Drag and drop the most recent version of the plugin into your plugins folder. Re
 
 The config file contains:
 
+> External-Renders:\
+> &nbsp;&nbsp;Use-External: true\
+> &nbsp;&nbsp;Render-Command-PrefixL: rs\
 > User-Details:\
 > &nbsp;&nbsp;UseSQL: true\
 > &nbsp;&nbsp;HOSTNAME: hostname\
@@ -95,6 +98,10 @@ The config file contains:
 > &nbsp;&nbsp;USER: username\
 > &nbsp;&nbsp;PASS: password\
 > Application-Settings:\
+> &nbsp;&nbsp;Max-Application-Count: 10\
+> &nbsp;&nbsp;In-Game-Rating: false\
+> &nbsp;&nbsp;Use-Ranks-In-Application: false\
+> &nbsp;&nbsp;SQL-Table: table_name\
 > &nbsp;&nbsp;Use-Plot-Locations: true\
 > &nbsp;&nbsp;Criteria:\
 > &nbsp;&nbsp;\- atmosphere\
@@ -107,6 +114,16 @@ The config file contains:
 > Chunky-Config:\
 > &nbsp;&nbsp;Use-Chunky: false\
 > &nbsp;&nbsp;Max-Camera-Count: 4
+> GitLab-Config:\
+> &nbsp;&nbsp;In-Progress-Apps: [] \
+> &nbsp;&nbsp;Use-GitLab: true\
+> &nbsp;&nbsp;Logins:\
+> &nbsp;&nbsp;&nbsp;&nbsp;Render-Link: [https://api.renderservice.com/renders/get/<UUID\>/json]([https://api.renderservice.com/renders/get/<UUID>/json]) \
+> &nbsp;&nbsp;&nbsp;&nbsp;Render-Link-Queries: ?noFontReplace=1&limit=1\
+> &nbsp;&nbsp;&nbsp;&nbsp;Address: [https://gitlab.com/](https://gitlab.com/) \
+> &nbsp;&nbsp;&nbsp;&nbsp;Project-ID: 1\
+> &nbsp;&nbsp;&nbsp;&nbsp;Access-Token: api_token\
+> Player-Applications: \{\}
 
 Here you can specify:
 - Whether to use SQL databases or local files for application storage
