@@ -1,6 +1,6 @@
 name: PlayerReviewer
 main: me.engineersbox.playerrev.Main
-version: 2.5
+version: 2.6
 author: EngineersBox
 description: Review Player Rank Applications
 commands:
@@ -16,6 +16,10 @@ commands:
         description: Displays application submission help
         usage: /pr apphelp
         permission: pr.apphelp
+    pr renderhelp:
+        description: Displays render submission help
+        usage: /pr renderhelp
+        permission: pr.renderhelp
     pr apply:
         description: Allow Player To Apply For Rank Reviewal
         usage: /pr apply [<rank>]
@@ -55,6 +59,15 @@ commands:
         description: Allows Player To View Application Status
         usage: /pr status
         permission: pr.status
+    pr submissions:
+        description: Allows Player To View A List Build Submissions
+        usage: /pr submissions
+        permission: pr.submissions
+    pr removesubmission:
+        description: Allows Player To Remove A Specific Submission
+        usage: /pr removesubmission
+        permission: pr.removesubmission
+        aliases: [rs, remsub]
     pr pos1:
         description: Register position 1
         usage: /pr pos1
@@ -67,10 +80,10 @@ commands:
         description: Register a camera
         usage: /pr cam
         permission: pr.cam
-    pr chunkySettings:
+    pr chunkysettings:
         description: Returns position, chunk and parameter details
         usage: /pr chunkySettings
-        permission: pr.chunkySettings
+        permission: pr.chunkysettings
         aliases: [cs]
     pr setparam:
         description: Set a chunky JSON parameter
@@ -99,6 +112,7 @@ permissions:
             pr.use: true
             pr.help: true
             pr.apphelp: true
+            pr.renderhelp: true
             pr.apply: true
             pr.validranks: true
             pr.rate: true
@@ -108,10 +122,12 @@ permissions:
             pr.removeapplication: true
             pr.version: true
             pr.status: true
+            pr.submissions: true
+            pr.removesubmission: true
             pr.pos1: true
             pr.pos2: true
             pr.cam: true
-            pr.chunkySettings: true
+            pr.chunkysettings: true
             pr.setparam: true
             pr.removeparam: true
             pr.viewparams: true
@@ -129,6 +145,9 @@ permissions:
         default: true
     pr.apphelp:
         description: Allows the use of /pr apphelp
+        default: true
+    pr.renderhelp:
+        description: Allows the use of /pr renderhelp
         default: true
     pr.validranks:
         description: Displays All Valid Ranks
@@ -154,6 +173,12 @@ permissions:
     pr.status:
         description: Allows the use of /pr status
         default: true
+    pr.submissions:
+        description: Allows the use of /pr submissions
+        default: true
+    pr.removesubmission:
+        description: Allows the use of /pr removesubmission
+        default: true
     pr.pos1:
         description: Allows the use of /pr pos1
         default: true
@@ -163,8 +188,8 @@ permissions:
     pr.cam:
         description: Allows the use of /pr cam
         default: true
-    pr.chunkySettings:
-        description: Allows the use of /pr get
+    pr.chunkysettings:
+        description: Allows the use of /pr chunkysettings
         default: true
     pr.setparam:
         description: Allows the use of /pr setparam
