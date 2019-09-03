@@ -18,16 +18,28 @@ import me.engineersbox.playerrev.enums.GitLabStatusCodes;
 
 public class GitLabManager {
 	
-	public static boolean checkIssueExists(String title) throws IOException {
-		String geturl = GitConfig.getGitAddress()
-				+ "/api/v4/projects/"
-				+ GitConfig.getProjectID() + "/"
-				+ "issues?search=" + title.replaceAll("\\s", "%20");
-		URL obj = new URL(geturl);
+	private static int sendRequestWithResponse(String url, String method, String token) throws IOException {
+		URL obj = new URL(url);
 		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 		
-		con.setRequestMethod("GET");
-		con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
+		con.setRequestMethod(method);
+		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+		con.setRequestProperty("PRIVATE-TOKEN", token);
+		con.setDoOutput(true);
+		
+		int responseCode = con.getResponseCode();
+		con.disconnect();
+		return responseCode;
+	}
+	
+	private static StringBuffer sendRequestWithStringResponse(String url, String method, String token) throws IOException {
+		URL obj = new URL(url);
+		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+		
+		con.setRequestMethod(method);
+		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+		con.setRequestProperty("PRIVATE-TOKEN", token);
+		con.setDoOutput(true);
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String inputLine;
@@ -37,58 +49,39 @@ public class GitLabManager {
 			response.append(inputLine);
 		}
 		
-		in.close();
 		con.disconnect();
+		return response;
+	}
+	
+	public static boolean checkIssueExists(String title) throws IOException {
+		String url = GitConfig.getGitAddress()
+				+ "/api/v4/projects/"
+				+ GitConfig.getProjectID() + "/"
+				+ "issues?search=" + title.replaceAll("\\s", "%20");
+		
+		StringBuffer response = sendRequestWithStringResponse(url, "GET",  GitConfig.getAccesskey());
 
 		return !response.toString().equals("[]");
 	}
 	
 	public static boolean checkIssueExistsId(String id) throws IOException {
-		String geturl = GitConfig.getGitAddress()
+		String url = GitConfig.getGitAddress()
 				+ "/api/v4/projects/"
 				+ GitConfig.getProjectID() + "/"
 				+ "issues/" + id;
-		URL obj = new URL(geturl);
-		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 		
-		con.setRequestMethod("GET");
-		con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-		
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String inputLine;
-		StringBuffer response = new StringBuffer();
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		
-		in.close();
-		con.disconnect();
+		StringBuffer response = sendRequestWithStringResponse(url, "GET",  GitConfig.getAccesskey());
 
 		return !response.toString().equals("{\"message\":\"404 Not found\"}");
 	}
 	
 	public static String getIssueID(String title) throws IOException {
-		String geturl = GitConfig.getGitAddress()
+		String url = GitConfig.getGitAddress()
 				+ "/api/v4/projects/"
 				+ GitConfig.getProjectID() + "/"
 				+ "issues?search=" + title.replaceAll("\\s", "%20");
-		URL obj = new URL(geturl);
-		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-		
-		con.setRequestMethod("GET");
-		con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-		
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String inputLine;
-		StringBuffer response = new StringBuffer();
 
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		
-		in.close();
-		con.disconnect();
+		StringBuffer response = sendRequestWithStringResponse(url, "GET", GitConfig.getAccesskey());
 		
 		if (response.toString().equals("[]")) {
 			return "";
@@ -99,26 +92,12 @@ public class GitLabManager {
 	
 	public static String getIssueDescription(String title) {
 		try {
-			String geturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues?search=" + title.replaceAll("\\s", "%20");
-			URL obj = new URL(geturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 			
-			con.setRequestMethod("GET");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String inputLine;
-			StringBuffer response = new StringBuffer();
-
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
-			}
-			
-			in.close();
-			con.disconnect();
+			StringBuffer response = sendRequestWithStringResponse(url, "GET",  GitConfig.getAccesskey());
 			
 			if (response.toString().equals("[]")) {
 				return "";
@@ -133,8 +112,8 @@ public class GitLabManager {
 	
 	public static String getUpdateTime(java.util.UUID id) {
 		try {
-			String geturl = GitConfig.getRenderLink().replaceAll("\\<UUID\\>", id.toString()) + GitConfig.getRenderQuery();
-			URL obj = new URL(geturl);
+			String url = GitConfig.getRenderLink().replaceAll("\\<UUID\\>", id.toString()) + GitConfig.getRenderQuery();
+			URL obj = new URL(url);
 			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 			
 			con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
@@ -177,9 +156,9 @@ public class GitLabManager {
 	}
 	
 	public static List<String> getRenderLinks(java.util.UUID id) throws IOException {
-		String geturl = GitConfig.getRenderLink().replaceAll("\\<UUID\\>", id.toString().toString())
+		String url = GitConfig.getRenderLink().replaceAll("\\<UUID\\>", id.toString().toString())
 				+ "?" + GitConfig.getRenderQuery().replace("?", "");
-		URL obj = new URL(geturl);
+		URL obj = new URL(url);
 		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 		
 		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
@@ -216,21 +195,14 @@ public class GitLabManager {
 	public static void addIssue(Player p, String title, String description) throws IOException {
 		boolean response = checkIssueExists(title);
 		if (!response) {
-			String posturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues?title=" + title.replaceAll("\\s", "%20")
 					+ "&description=" + description
 					+ "&labels=request";
-			URL obj = new URL(posturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
-			con.setRequestMethod("POST");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			int responseCode = sendRequestWithResponse(url, "POST", GitConfig.getAccesskey());
 			
 			Bukkit.getLogger().info(
 					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
@@ -246,20 +218,13 @@ public class GitLabManager {
 	private static void openIssue(Player p, String title, String description) throws IOException {
 		boolean response = checkIssueExists(title);
 		if (response) {
-			String posturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
 					+ "?state_event=reopen&description=" + description;
-			URL obj = new URL(posturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-
-			con.setRequestMethod("PUT");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			
+			int responseCode = sendRequestWithResponse(url, "PUT", GitConfig.getAccesskey());
 			
 			Bukkit.getLogger().info(
 					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
@@ -273,20 +238,13 @@ public class GitLabManager {
 	private static void closeIssue(Player p, String title) throws IOException {
 		boolean response = checkIssueExists(title);
 		if (response) {
-			String posturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
 					+ "?state_event=close";
-			URL obj = new URL(posturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-
-			con.setRequestMethod("PUT");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			
+			int responseCode = sendRequestWithResponse(url, "PUT", GitConfig.getAccesskey());
 			
 			Bukkit.getLogger().info(
 					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
@@ -300,20 +258,13 @@ public class GitLabManager {
 	private static void closeIssueId(Player p, String id) throws IOException {
 		boolean response = checkIssueExistsId(id);
 		if (response) {
-			String posturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + id
 					+ "?state_event=close";
-			URL obj = new URL(posturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-
-			con.setRequestMethod("PUT");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			
+			int responseCode = sendRequestWithResponse(url, "PUT", GitConfig.getAccesskey());
 			
 			Bukkit.getLogger().info(
 					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
@@ -327,19 +278,12 @@ public class GitLabManager {
 	public static void removeIssue(Player p, String title) throws IOException {
 		boolean response = checkIssueExists(title);
 		if (response) {
-			String delurl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"));
-			URL obj = new URL(delurl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-			
-			con.setRequestMethod("DELETE");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
 
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			int responseCode = sendRequestWithResponse(url, "DELETE", GitConfig.getAccesskey());
 			
 			if (responseCode == 403) {
 				closeIssue(p, title);
@@ -357,19 +301,12 @@ public class GitLabManager {
 	public static void removeIssueById(Player p, String id) throws IOException {
 		boolean response = checkIssueExistsId(id);
 		if (response) {
-			String delurl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + id;
-			URL obj = new URL(delurl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 			
-			con.setRequestMethod("DELETE");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			int responseCode = sendRequestWithResponse(url, "DELETE", GitConfig.getAccesskey());
 			
 			if (responseCode == 403) {
 				closeIssueId(p, id);
@@ -386,21 +323,13 @@ public class GitLabManager {
 	
 	public static void editIssue(Player p, String title, String desc) {
 		try {
-			String puturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + getIssueID(title.replaceAll("\\s", "%20"))
 					+ "?description=" + desc;
-			URL obj = new URL(puturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-			
-			con.setRequestMethod("PUT");
-			con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-			
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+
+			int responseCode = sendRequestWithResponse(url, "PUT", GitConfig.getAccesskey());
 			
 			Bukkit.getLogger().info(
 					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
@@ -414,21 +343,13 @@ public class GitLabManager {
 	
 	public static void editIssueTitle(Player p, String title, String id) {
 		try {
-			String puturl = GitConfig.getGitAddress()
+			String url = GitConfig.getGitAddress()
 					+ "/api/v4/projects/"
 					+ GitConfig.getProjectID() + "/"
 					+ "issues/" + id
 					+ "?title=" + title.replaceAll("\\s", "%20");
-			URL obj = new URL(puturl);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 			
-			con.setRequestMethod("PUT");
-			con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-			con.setRequestProperty("PRIVATE-TOKEN", GitConfig.getAccesskey());
-			con.setDoOutput(true);
-			
-			int responseCode = con.getResponseCode();
-			con.disconnect();
+			int responseCode = sendRequestWithResponse(url, "POST", GitConfig.getAccesskey());
 			
 			Bukkit.getLogger().info(
 					GitLabStatusCodes.valueOf("S" + responseCode) != null ?
